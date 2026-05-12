@@ -16,6 +16,7 @@ uniform float deltaTime;            // Time since last frame in seconds
 uniform vec2 resolution;            // Canvas resolution
 uniform float particleSpeed;        // Base speed multiplier for particles
 uniform float searchRadius;         // Radius for searching nearby edges
+uniform int edgeSearchSteps;        // Number of texels to search in each grid direction
 uniform float attractionStrength;   // Strength of edge attraction
 uniform float time;                 // Global time for animation
 uniform float noiseSeed;            // Random seed for Perlin noise
@@ -28,6 +29,8 @@ uniform float cursorStrength;       // Cursor force multiplier
 uniform float cursorDirection;      // -1 repels from cursor, 1 attracts toward cursor
 uniform float cursorReturnStrength; // Strength of return force toward stored target
 uniform float cursorReturnDamping;  // Velocity damping while particles settle back
+
+const int MAX_EDGE_SEARCH_STEPS = 3;
 
 /**
  * Generate a pseudo-random number in range [0,1] based on a 2D coordinate
@@ -226,10 +229,14 @@ void main() {
         vec2 closestEdge = pos;
         bool foundEdge = false;
         
-        // Grid search for nearby strong edges
-        for (float y = -3.0; y <= 3.0; y += 1.0) {
-            for (float x = -3.0; x <= 3.0; x += 1.0) {
-                vec2 offset = vec2(x, y) / resolution;
+        // Grid search for nearby strong edges. The loop remains bounded for predictable shader compilation,
+        // while edgeSearchSteps controls how many texture samples are taken at runtime.
+        int boundedEdgeSearchSteps = clamp(edgeSearchSteps, 1, MAX_EDGE_SEARCH_STEPS);
+        for (int y = -MAX_EDGE_SEARCH_STEPS; y <= MAX_EDGE_SEARCH_STEPS; y += 1) {
+            for (int x = -MAX_EDGE_SEARCH_STEPS; x <= MAX_EDGE_SEARCH_STEPS; x += 1) {
+                if (abs(x) > boundedEdgeSearchSteps || abs(y) > boundedEdgeSearchSteps) continue;
+
+                vec2 offset = vec2(float(x), float(y)) / resolution;
                 vec2 samplePos = pos + offset;
                 
                 // Skip if sample position is outside texture bounds

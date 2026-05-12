@@ -77,6 +77,7 @@ Main options:
 - `particleOpacity`
 - `particleSize`
 - `edgeThreshold`
+- `edgeSearchSteps`: `1`, `2`, or `3`; controls the bounded grid radius used when particles search for nearby edges.
 - `flowFieldScale`
 - `searchRadius`
 - `noiseType`: `'2D'` or `'3D'`

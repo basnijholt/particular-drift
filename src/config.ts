@@ -1,6 +1,7 @@
 export type NoiseType = '2D' | '3D';
 export type ImageFit = 'contain' | 'stretch';
 export type CursorMode = 'repel' | 'attract';
+export type EdgeSearchSteps = 1 | 2 | 3;
 
 export type ParticularDriftOptions = {
   imageUrl?: string;
@@ -11,6 +12,7 @@ export type ParticularDriftOptions = {
   particleOpacity: number;
   particleSize: number;
   edgeThreshold: number;
+  edgeSearchSteps: EdgeSearchSteps;
   flowFieldScale: number;
   searchRadius: number;
   noiseType: NoiseType;
@@ -36,6 +38,7 @@ export const DEFAULT_PARTICULAR_DRIFT_OPTIONS: ParticularDriftOptions = {
   particleOpacity: 0.22,
   particleSize: 0.85,
   edgeThreshold: 0.4,
+  edgeSearchSteps: 2,
   flowFieldScale: 4,
   searchRadius: 0.02,
   noiseType: '2D',

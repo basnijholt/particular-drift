@@ -19,6 +19,7 @@ describe('particular drift config', () => {
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.cursorMode).toBe('repel');
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.cursorReturnStrength).toBeGreaterThan(0);
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.cursorReturnDamping).toBeGreaterThan(0);
+    expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.edgeSearchSteps).toBe(2);
   });
 
   it('merges user options without mutating the default object', () => {

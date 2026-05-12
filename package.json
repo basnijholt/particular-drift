@@ -34,6 +34,7 @@
   },
   "sideEffects": false,
   "scripts": {
+    "dev": "vite --host 0.0.0.0 --open",
     "build": "vite build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",

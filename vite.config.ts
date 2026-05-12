@@ -2,12 +2,17 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 import dts from 'vite-plugin-dts';
 
+const reactBuildPlugins = react().map((plugin) => ({
+  ...plugin,
+  apply: 'build' as const,
+}));
+
 export default defineConfig({
   plugins: [
-    react(),
+    ...reactBuildPlugins,
     dts({
       entryRoot: 'src',
-      exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'vite.config.ts'],
+      exclude: ['demo/**', 'src/**/*.test.ts', 'src/**/*.test.tsx', 'vite.config.ts'],
     }),
   ],
   build: {

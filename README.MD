@@ -93,6 +93,7 @@ Main options:
 
 ```bash
 bun install
+bun run dev
 bun test
 bun run typecheck
 bun run build

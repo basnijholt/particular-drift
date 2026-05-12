@@ -84,6 +84,8 @@ Main options:
 - `cursorMode`: `'repel'` pushes particles away from the cursor; `'attract'` pulls them toward it.
 - `cursorRadius`: normalized cursor influence radius.
 - `cursorStrength`: cursor force multiplier.
+- `cursorReturnStrength`: force that pulls disturbed particles back toward their stored image target.
+- `cursorReturnDamping`: damping applied while particles settle back after cursor disturbance.
 - `backgroundColor`
 - `particleColor`
 - `autoStart`

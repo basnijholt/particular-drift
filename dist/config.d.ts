@@ -17,6 +17,8 @@ export type ParticularDriftOptions = {
     cursorMode: CursorMode;
     cursorRadius: number;
     cursorStrength: number;
+    cursorReturnStrength: number;
+    cursorReturnDamping: number;
     backgroundColor: string;
     particleColor: string;
     autoStart: boolean;

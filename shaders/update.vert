@@ -26,6 +26,8 @@ uniform bool cursorActive;          // Whether cursor force should be applied
 uniform float cursorRadius;         // Cursor influence radius in normalized coordinates
 uniform float cursorStrength;       // Cursor force multiplier
 uniform float cursorDirection;      // -1 repels from cursor, 1 attracts toward cursor
+uniform float cursorReturnStrength; // Strength of return force toward stored target
+uniform float cursorReturnDamping;  // Velocity damping while particles settle back
 
 /**
  * Generate a pseudo-random number in range [0,1] based on a 2D coordinate
@@ -264,10 +266,12 @@ void main() {
         vel = mix(vel, velocity, 0.3);
     }
     
+    float cursorFalloff = 0.0;
+
     if (cursorActive && cursorRadius > 0.0 && cursorStrength > 0.0) {
         vec2 toCursor = cursorPosition - pos;
         float cursorDistance = length(toCursor);
-        float cursorFalloff = smoothstep(cursorRadius, 0.0, cursorDistance);
+        cursorFalloff = smoothstep(cursorRadius, 0.0, cursorDistance);
 
         if (cursorFalloff > 0.0 && cursorDistance > 0.0001) {
             vec2 cursorForce = normalize(toCursor) *
@@ -278,7 +282,21 @@ void main() {
                 particleSpeed *
                 0.004;
             vel += cursorForce;
-            tgt = vec2(-1.0);
+        }
+    }
+
+    if (tgt.x >= 0.0 && tgt.y >= 0.0 && cursorReturnStrength > 0.0) {
+        vec2 toTarget = tgt - pos;
+        float targetDistance = length(toTarget);
+        float returnInfluence = (1.0 - cursorFalloff) * smoothstep(0.001, 0.08, targetDistance);
+
+        if (returnInfluence > 0.0) {
+            vec2 returnForce = normalize(toTarget) *
+                returnInfluence *
+                cursorReturnStrength *
+                particleSpeed *
+                0.0015;
+            vel = mix(vel + returnForce, returnForce, clamp(cursorReturnDamping, 0.0, 0.98) * returnInfluence);
         }
     }
 

@@ -18,6 +18,8 @@ export type ParticularDriftOptions = {
   cursorMode: CursorMode;
   cursorRadius: number;
   cursorStrength: number;
+  cursorReturnStrength: number;
+  cursorReturnDamping: number;
   backgroundColor: string;
   particleColor: string;
   autoStart: boolean;
@@ -41,6 +43,8 @@ export const DEFAULT_PARTICULAR_DRIFT_OPTIONS: ParticularDriftOptions = {
   cursorMode: 'repel',
   cursorRadius: 0.12,
   cursorStrength: 1.4,
+  cursorReturnStrength: 0.55,
+  cursorReturnDamping: 0.82,
   backgroundColor: '#0f0d2e',
   particleColor: '#dda290',
   autoStart: true,

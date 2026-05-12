@@ -173,6 +173,14 @@ export class ParticleSystem {
       gl.getUniformLocation(this.programs.update, 'cursorDirection'),
       this.options.cursorMode === 'attract' ? 1 : -1
     );
+    gl.uniform1f(
+      gl.getUniformLocation(this.programs.update, 'cursorReturnStrength'),
+      this.options.cursorReturnStrength
+    );
+    gl.uniform1f(
+      gl.getUniformLocation(this.programs.update, 'cursorReturnDamping'),
+      this.options.cursorReturnDamping
+    );
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.edgeTexture);
     gl.uniform1i(gl.getUniformLocation(this.programs.update, 'edgeTexture'), 0);

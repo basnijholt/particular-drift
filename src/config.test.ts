@@ -17,6 +17,8 @@ describe('particular drift config', () => {
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.imageFit).toBe('contain');
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.interactive).toBe(true);
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.cursorMode).toBe('repel');
+    expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.cursorReturnStrength).toBeGreaterThan(0);
+    expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.cursorReturnDamping).toBeGreaterThan(0);
   });
 
   it('merges user options without mutating the default object', () => {

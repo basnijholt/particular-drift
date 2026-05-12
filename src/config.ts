@@ -1,7 +1,9 @@
 export type NoiseType = '2D' | '3D';
+export type ImageFit = 'contain' | 'stretch';
 
 export type ParticularDriftOptions = {
   imageUrl?: string;
+  imageFit: ImageFit;
   particleCount: number;
   particleSpeed: number;
   attractionStrength: number;
@@ -20,6 +22,7 @@ export type ParticularDriftOptions = {
 export type ParticularDriftUserOptions = Partial<ParticularDriftOptions>;
 
 export const DEFAULT_PARTICULAR_DRIFT_OPTIONS: ParticularDriftOptions = {
+  imageFit: 'contain',
   particleCount: 120000,
   particleSpeed: 12,
   attractionStrength: 85,
@@ -81,5 +84,53 @@ export const resolveCanvasSize = ({
   return {
     width: Math.max(1, Math.floor(cssWidth * ratio)),
     height: Math.max(1, Math.floor(cssHeight * ratio)),
+  };
+};
+
+export type ResolveImageFitInput = {
+  fit: ImageFit;
+  canvasWidth: number;
+  canvasHeight: number;
+  imageWidth: number;
+  imageHeight: number;
+};
+
+export type ResolvedImageFit = {
+  scaleX: number;
+  scaleY: number;
+  offsetX: number;
+  offsetY: number;
+};
+
+export const resolveImageFit = ({
+  fit,
+  canvasWidth,
+  canvasHeight,
+  imageWidth,
+  imageHeight,
+}: ResolveImageFitInput): ResolvedImageFit => {
+  if (fit === 'stretch' || canvasWidth <= 0 || canvasHeight <= 0 || imageWidth <= 0 || imageHeight <= 0) {
+    return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0 };
+  }
+
+  const canvasAspect = canvasWidth / canvasHeight;
+  const imageAspect = imageWidth / imageHeight;
+
+  if (canvasAspect > imageAspect) {
+    const scaleX = imageAspect / canvasAspect;
+    return {
+      scaleX,
+      scaleY: 1,
+      offsetX: (1 - scaleX) / 2,
+      offsetY: 0,
+    };
+  }
+
+  const scaleY = canvasAspect / imageAspect;
+  return {
+    scaleX: 1,
+    scaleY,
+    offsetX: 0,
+    offsetY: (1 - scaleY) / 2,
   };
 };

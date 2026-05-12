@@ -1,6 +1,8 @@
 export type NoiseType = '2D' | '3D';
+export type ImageFit = 'contain' | 'stretch';
 export type ParticularDriftOptions = {
     imageUrl?: string;
+    imageFit: ImageFit;
     particleCount: number;
     particleSpeed: number;
     attractionStrength: number;
@@ -29,3 +31,17 @@ export declare const resolveCanvasSize: ({ cssWidth, cssHeight, devicePixelRatio
     width: number;
     height: number;
 };
+export type ResolveImageFitInput = {
+    fit: ImageFit;
+    canvasWidth: number;
+    canvasHeight: number;
+    imageWidth: number;
+    imageHeight: number;
+};
+export type ResolvedImageFit = {
+    scaleX: number;
+    scaleY: number;
+    offsetX: number;
+    offsetY: number;
+};
+export declare const resolveImageFit: ({ fit, canvasWidth, canvasHeight, imageWidth, imageHeight, }: ResolveImageFitInput) => ResolvedImageFit;

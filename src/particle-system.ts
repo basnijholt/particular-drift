@@ -1,4 +1,4 @@
-import { ParticularDriftOptions, hexToRgbUnit } from './config';
+import { ParticularDriftOptions, hexToRgbUnit, resolveImageFit } from './config';
 import { GlState } from './gl-state';
 import { createBuffer, createTexture } from './webgl';
 
@@ -6,6 +6,18 @@ export type ParticleSystemPrograms = {
   edge: WebGLProgram;
   particle: WebGLProgram;
   update: WebGLProgram;
+};
+
+const getTexImageSourceSize = (image: TexImageSource): { width: number; height: number } => {
+  if ('displayWidth' in image && 'displayHeight' in image) {
+    return { width: image.displayWidth, height: image.displayHeight };
+  }
+
+  if ('videoWidth' in image && 'videoHeight' in image) {
+    return { width: image.videoWidth, height: image.videoHeight };
+  }
+
+  return { width: image.width, height: image.height };
 };
 
 export class ParticleSystem {
@@ -85,13 +97,25 @@ export class ParticleSystem {
   processImage(image: TexImageSource): void {
     const texture = createTexture(this.gl, { data: image });
     const resolution = this.gl.getUniformLocation(this.programs.edge, 'uResolution');
+    const imageScale = this.gl.getUniformLocation(this.programs.edge, 'uImageScale');
+    const imageOffset = this.gl.getUniformLocation(this.programs.edge, 'uImageOffset');
     const threshold = this.gl.getUniformLocation(this.programs.edge, 'threshold');
     const imageUniform = this.gl.getUniformLocation(this.programs.edge, 'uImage');
+    const imageSize = getTexImageSourceSize(image);
+    const fit = resolveImageFit({
+      fit: this.options.imageFit,
+      canvasWidth: this.gl.canvas.width,
+      canvasHeight: this.gl.canvas.height,
+      imageWidth: imageSize.width,
+      imageHeight: imageSize.height,
+    });
 
     this.glState.bindFramebuffer(this.edgeFramebuffer);
     this.glState.setViewport(this.gl.canvas.width, this.gl.canvas.height);
     this.glState.useProgram(this.programs.edge);
     this.gl.uniform2f(resolution, this.gl.canvas.width, this.gl.canvas.height);
+    this.gl.uniform2f(imageScale, fit.scaleX, fit.scaleY);
+    this.gl.uniform2f(imageOffset, fit.offsetX, fit.offsetY);
     this.gl.uniform1f(threshold, this.options.edgeThreshold);
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, texture);

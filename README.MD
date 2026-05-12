@@ -69,6 +69,7 @@ export function AuthBackground() {
 Main options:
 
 - `imageUrl`
+- `imageFit`: `'contain'` preserves image aspect ratio inside the canvas; `'stretch'` uses the original full-canvas mapping.
 - `particleCount`
 - `particleSpeed`
 - `attractionStrength`

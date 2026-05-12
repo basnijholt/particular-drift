@@ -5,6 +5,7 @@ import {
   getResolvedOptions,
   hexToRgbUnit,
   resolveCanvasSize,
+  resolveImageFit,
 } from './config';
 
 describe('particular drift config', () => {
@@ -12,6 +13,7 @@ describe('particular drift config', () => {
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.particleCount).toBeLessThan(300000);
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.autoStart).toBe(true);
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.backgroundColor).toMatch(/^#[0-9a-f]{6}$/i);
+    expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.imageFit).toBe('contain');
   });
 
   it('merges user options without mutating the default object', () => {
@@ -39,5 +41,37 @@ describe('particular drift config', () => {
         maxDevicePixelRatio: 2,
       })
     ).toEqual({ width: 640, height: 360 });
+  });
+
+  it('preserves image aspect ratio when containing an image in a wider canvas', () => {
+    const fit = resolveImageFit({
+      fit: 'contain',
+      canvasWidth: 1600,
+      canvasHeight: 900,
+      imageWidth: 690,
+      imageHeight: 676,
+    });
+
+    expect(fit.scaleX).toBeCloseTo(0.574);
+    expect(fit.scaleY).toBe(1);
+    expect(fit.offsetX).toBeCloseTo(0.213);
+    expect(fit.offsetY).toBe(0);
+  });
+
+  it('keeps stretch available for callers that want the original canvas mapping', () => {
+    expect(
+      resolveImageFit({
+        fit: 'stretch',
+        canvasWidth: 1600,
+        canvasHeight: 900,
+        imageWidth: 690,
+        imageHeight: 676,
+      })
+    ).toEqual({
+      scaleX: 1,
+      scaleY: 1,
+      offsetX: 0,
+      offsetY: 0,
+    });
   });
 });

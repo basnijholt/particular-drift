@@ -1,7 +1,7 @@
 #version 300 es
-in vec2 position;
-in vec2 velocity;
-in vec2 target;
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 velocity;
+layout(location = 2) in vec2 target;
 
 uniform float particleSize;
 

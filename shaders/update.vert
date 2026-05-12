@@ -1,9 +1,9 @@
 #version 300 es
 
 // Input attributes from vertex buffers
-in vec2 position;    // Current particle position (normalized 0-1)
-in vec2 velocity;    // Current particle velocity
-in vec2 target;      // Target position for edge tracking
+layout(location = 0) in vec2 position;    // Current particle position (normalized 0-1)
+layout(location = 1) in vec2 velocity;    // Current particle velocity
+layout(location = 2) in vec2 target;      // Target position for edge tracking
 
 // Output varyings for transform feedback
 out vec2 vPosition;  // Updated particle position

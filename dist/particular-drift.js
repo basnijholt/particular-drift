@@ -257,9 +257,9 @@ void main() {
     if (dist > 0.5) discard;
     fragColor = vec4(uParticleColor, uParticleOpacity);
 }`, N = `#version 300 es
-in vec2 position;
-in vec2 velocity;
-in vec2 target;
+layout(location = 0) in vec2 position;
+layout(location = 1) in vec2 velocity;
+layout(location = 2) in vec2 target;
 
 uniform float particleSize;
 
@@ -273,7 +273,8 @@ void main() {
     vTarget = target;
     gl_Position = vec4(position * 2.0 - 1.0, 0, 1);
     gl_PointSize = 2.0 * particleSize;
-}`, V = `#version 300 es
+}
+`, V = `#version 300 es
 precision highp float;
 out vec4 fragColor;
 void main() {
@@ -281,9 +282,9 @@ void main() {
 }`, O = `#version 300 es
 
 // Input attributes from vertex buffers
-in vec2 position;    // Current particle position (normalized 0-1)
-in vec2 velocity;    // Current particle velocity
-in vec2 target;      // Target position for edge tracking
+layout(location = 0) in vec2 position;    // Current particle position (normalized 0-1)
+layout(location = 1) in vec2 velocity;    // Current particle velocity
+layout(location = 2) in vec2 target;      // Target position for edge tracking
 
 // Output varyings for transform feedback
 out vec2 vPosition;  // Updated particle position

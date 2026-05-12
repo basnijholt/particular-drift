@@ -21,6 +21,11 @@ uniform float time;                 // Global time for animation
 uniform float noiseSeed;            // Random seed for Perlin noise
 uniform float flowFieldScale;      // Scale factor for the flow field
 uniform bool use3DNoise;        // Whether to use 3D noise instead of 2D
+uniform vec2 cursorPosition;        // Cursor position in normalized particle coordinates
+uniform bool cursorActive;          // Whether cursor force should be applied
+uniform float cursorRadius;         // Cursor influence radius in normalized coordinates
+uniform float cursorStrength;       // Cursor force multiplier
+uniform float cursorDirection;      // -1 repels from cursor, 1 attracts toward cursor
 
 /**
  * Generate a pseudo-random number in range [0,1] based on a 2D coordinate
@@ -259,6 +264,24 @@ void main() {
         vel = mix(vel, velocity, 0.3);
     }
     
+    if (cursorActive && cursorRadius > 0.0 && cursorStrength > 0.0) {
+        vec2 toCursor = cursorPosition - pos;
+        float cursorDistance = length(toCursor);
+        float cursorFalloff = smoothstep(cursorRadius, 0.0, cursorDistance);
+
+        if (cursorFalloff > 0.0 && cursorDistance > 0.0001) {
+            vec2 cursorForce = normalize(toCursor) *
+                cursorDirection *
+                cursorFalloff *
+                cursorFalloff *
+                cursorStrength *
+                particleSpeed *
+                0.004;
+            vel += cursorForce;
+            tgt = vec2(-1.0);
+        }
+    }
+
     // Update position using velocity and delta time
     pos += vel * deltaTime;
     

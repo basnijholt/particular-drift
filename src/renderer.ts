@@ -1,4 +1,11 @@
-import { ParticularDriftOptions, ParticularDriftUserOptions, getResolvedOptions, hexToRgbUnit, resolveCanvasSize } from './config';
+import {
+  ParticularDriftOptions,
+  ParticularDriftUserOptions,
+  getResolvedOptions,
+  hexToRgbUnit,
+  resolveCanvasSize,
+  resolveCursorPosition,
+} from './config';
 import { GlState } from './gl-state';
 import { ParticleSystem, ParticleSystemPrograms } from './particle-system';
 import { SHADERS } from './shaders';
@@ -43,6 +50,7 @@ export const createParticularDrift = async (
   let animationFrame: number | undefined;
   let lastFrameTime = 0;
   let destroyed = false;
+  const cursor = { x: 0.5, y: 0.5, active: false };
 
   const resize = (): void => {
     const rect = canvas.getBoundingClientRect();
@@ -65,6 +73,22 @@ export const createParticularDrift = async (
     glState.clear();
   };
 
+  const updateCursorFromPointerEvent = (event: PointerEvent): void => {
+    const nextCursor = resolveCursorPosition({
+      clientX: event.clientX,
+      clientY: event.clientY,
+      rect: canvas.getBoundingClientRect(),
+    });
+
+    cursor.x = nextCursor.x;
+    cursor.y = nextCursor.y;
+    cursor.active = nextCursor.active;
+  };
+
+  const deactivateCursor = (): void => {
+    cursor.active = false;
+  };
+
   const stop = (): void => {
     if (animationFrame !== undefined) {
       cancelAnimationFrame(animationFrame);
@@ -79,7 +103,7 @@ export const createParticularDrift = async (
     const deltaTime = lastFrameTime ? time - lastFrameTime : 0;
     lastFrameTime = time;
     clear();
-    particleSystem.update(deltaTime);
+    particleSystem.update(deltaTime, cursor);
     particleSystem.render();
     animationFrame = requestAnimationFrame(frame);
   };
@@ -107,6 +131,12 @@ export const createParticularDrift = async (
     clear();
   }
 
+  if (options.interactive) {
+    canvas.addEventListener('pointermove', updateCursorFromPointerEvent, { passive: true });
+    canvas.addEventListener('pointerleave', deactivateCursor);
+    canvas.addEventListener('pointercancel', deactivateCursor);
+  }
+
   return {
     loadImage: loadImageSource,
     loadImageUrl: async (url: string) => loadImageSource(await loadImage(url)),
@@ -116,6 +146,9 @@ export const createParticularDrift = async (
     destroy: () => {
       destroyed = true;
       stop();
+      canvas.removeEventListener('pointermove', updateCursorFromPointerEvent);
+      canvas.removeEventListener('pointerleave', deactivateCursor);
+      canvas.removeEventListener('pointercancel', deactivateCursor);
       particleSystem?.dispose();
       Object.values(programs).forEach((program) => gl.deleteProgram(program));
     },

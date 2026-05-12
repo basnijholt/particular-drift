@@ -6,6 +6,11 @@ export type ParticleSystemPrograms = {
     particle: WebGLProgram;
     update: WebGLProgram;
 };
+export type ParticleCursorState = {
+    x: number;
+    y: number;
+    active: boolean;
+};
 export declare class ParticleSystem {
     private readonly gl;
     private readonly glState;
@@ -25,7 +30,7 @@ export declare class ParticleSystem {
     private readonly noiseSeed;
     constructor(gl: WebGL2RenderingContext, glState: GlState, programs: ParticleSystemPrograms, options: ParticularDriftOptions);
     processImage(image: TexImageSource): void;
-    update(deltaTimeMs: number): void;
+    update(deltaTimeMs: number, cursor: ParticleCursorState): void;
     render(): void;
     dispose(): void;
     private configureEdgeFramebuffer;

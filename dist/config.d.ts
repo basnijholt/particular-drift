@@ -1,5 +1,6 @@
 export type NoiseType = '2D' | '3D';
 export type ImageFit = 'contain' | 'stretch';
+export type CursorMode = 'repel' | 'attract';
 export type ParticularDriftOptions = {
     imageUrl?: string;
     imageFit: ImageFit;
@@ -12,6 +13,10 @@ export type ParticularDriftOptions = {
     flowFieldScale: number;
     searchRadius: number;
     noiseType: NoiseType;
+    interactive: boolean;
+    cursorMode: CursorMode;
+    cursorRadius: number;
+    cursorStrength: number;
     backgroundColor: string;
     particleColor: string;
     autoStart: boolean;
@@ -44,4 +49,15 @@ export type ResolvedImageFit = {
     offsetX: number;
     offsetY: number;
 };
+export type ResolveCursorPositionInput = {
+    clientX: number;
+    clientY: number;
+    rect: Pick<DOMRectReadOnly, 'left' | 'top' | 'width' | 'height'>;
+};
+export type ResolvedCursorPosition = {
+    x: number;
+    y: number;
+    active: boolean;
+};
+export declare const resolveCursorPosition: ({ clientX, clientY, rect, }: ResolveCursorPositionInput) => ResolvedCursorPosition;
 export declare const resolveImageFit: ({ fit, canvasWidth, canvasHeight, imageWidth, imageHeight, }: ResolveImageFitInput) => ResolvedImageFit;

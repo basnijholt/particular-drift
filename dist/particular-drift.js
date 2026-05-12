@@ -1,7 +1,7 @@
-var A = Object.defineProperty;
-var U = (t, n, e) => n in t ? A(t, n, { enumerable: !0, configurable: !0, writable: !0, value: e }) : t[n] = e;
-var f = (t, n, e) => U(t, typeof n != "symbol" ? n + "" : n, e);
-const w = {
+var B = Object.defineProperty;
+var I = (e, n, o) => n in e ? B(e, n, { enumerable: !0, configurable: !0, writable: !0, value: o }) : e[n] = o;
+var f = (e, n, o) => I(e, typeof n != "symbol" ? n + "" : n, o);
+const C = {
   imageFit: "contain",
   particleCount: 12e4,
   particleSpeed: 12,
@@ -12,45 +12,62 @@ const w = {
   flowFieldScale: 4,
   searchRadius: 0.02,
   noiseType: "2D",
+  interactive: !0,
+  cursorMode: "repel",
+  cursorRadius: 0.12,
+  cursorStrength: 1.4,
   backgroundColor: "#0f0d2e",
   particleColor: "#dda290",
   autoStart: !0,
   maxDevicePixelRatio: 2
-}, C = (t = {}) => ({
-  ...w,
-  ...t
-}), P = (t) => {
-  const n = t.trim().replace(/^#/, ""), e = n.length === 3 ? n.split("").map((o) => `${o}${o}`).join("") : n;
-  if (!/^[0-9a-f]{6}$/i.test(e))
-    throw new Error(`Invalid hex color: ${t}`);
+}, D = (e = {}) => ({
+  ...C,
+  ...e
+}), U = (e) => {
+  const n = e.trim().replace(/^#/, ""), o = n.length === 3 ? n.split("").map((t) => `${t}${t}`).join("") : n;
+  if (!/^[0-9a-f]{6}$/i.test(o))
+    throw new Error(`Invalid hex color: ${e}`);
   return [
-    Number.parseInt(e.slice(0, 2), 16) / 255,
-    Number.parseInt(e.slice(2, 4), 16) / 255,
-    Number.parseInt(e.slice(4, 6), 16) / 255
+    Number.parseInt(o.slice(0, 2), 16) / 255,
+    Number.parseInt(o.slice(2, 4), 16) / 255,
+    Number.parseInt(o.slice(4, 6), 16) / 255
   ];
-}, B = ({
-  cssWidth: t,
+}, _ = ({
+  cssWidth: e,
   cssHeight: n,
-  devicePixelRatio: e = globalThis.devicePixelRatio ?? 1,
-  maxDevicePixelRatio: o = w.maxDevicePixelRatio
+  devicePixelRatio: o = globalThis.devicePixelRatio ?? 1,
+  maxDevicePixelRatio: t = C.maxDevicePixelRatio
 }) => {
-  const i = Math.max(1, Math.min(e, o));
+  const r = Math.max(1, Math.min(o, t));
   return {
-    width: Math.max(1, Math.floor(t * i)),
-    height: Math.max(1, Math.floor(n * i))
+    width: Math.max(1, Math.floor(e * r)),
+    height: Math.max(1, Math.floor(n * r))
   };
-}, I = ({
-  fit: t,
-  canvasWidth: n,
-  canvasHeight: e,
-  imageWidth: o,
-  imageHeight: i
+}, L = ({
+  clientX: e,
+  clientY: n,
+  rect: o
 }) => {
-  if (t === "stretch" || n <= 0 || e <= 0 || o <= 0 || i <= 0)
+  if (o.width <= 0 || o.height <= 0)
+    return { x: 0, y: 0, active: !1 };
+  const t = (e - o.left) / o.width, r = (n - o.top) / o.height, a = 1 - r;
+  return {
+    x: Math.min(1, Math.max(0, t)),
+    y: Math.min(1, Math.max(0, a)),
+    active: t >= 0 && t <= 1 && r >= 0 && r <= 1
+  };
+}, z = ({
+  fit: e,
+  canvasWidth: n,
+  canvasHeight: o,
+  imageWidth: t,
+  imageHeight: r
+}) => {
+  if (e === "stretch" || n <= 0 || o <= 0 || t <= 0 || r <= 0)
     return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0 };
-  const s = n / e, r = o / i;
-  if (s > r) {
-    const c = r / s;
+  const a = n / o, i = t / r;
+  if (a > i) {
+    const c = i / a;
     return {
       scaleX: c,
       scaleY: 1,
@@ -58,15 +75,15 @@ const w = {
       offsetY: 0
     };
   }
-  const a = s / r;
+  const s = a / i;
   return {
     scaleX: 1,
-    scaleY: a,
+    scaleY: s,
     offsetX: 0,
-    offsetY: (1 - a) / 2
+    offsetY: (1 - s) / 2
   };
 };
-class _ {
+class N {
   constructor(n) {
     f(this, "currentProgram", null);
     f(this, "currentVao", null);
@@ -82,8 +99,8 @@ class _ {
   bindFramebuffer(n) {
     this.currentFramebuffer !== n && (this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, n), this.currentFramebuffer = n);
   }
-  setViewport(n, e) {
-    this.gl.viewport(0, 0, n, e);
+  setViewport(n, o) {
+    this.gl.viewport(0, 0, n, o);
   }
   setClearColor(n) {
     this.gl.clearColor(n[0], n[1], n[2], 1);
@@ -92,57 +109,57 @@ class _ {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 }
-const G = () => {
+const q = () => {
   if (typeof document > "u") return !1;
   try {
     return !!document.createElement("canvas").getContext("webgl2");
   } catch {
     return !1;
   }
-}, T = (t, n, e) => {
-  const o = t.createShader(n);
-  if (!o)
+}, w = (e, n, o) => {
+  const t = e.createShader(n);
+  if (!t)
     throw new Error("Unable to create WebGL shader.");
-  if (t.shaderSource(o, e), t.compileShader(o), !t.getShaderParameter(o, t.COMPILE_STATUS)) {
-    const i = t.getShaderInfoLog(o) ?? "Unknown shader compile error.";
-    throw t.deleteShader(o), new Error(i);
+  if (e.shaderSource(t, o), e.compileShader(t), !e.getShaderParameter(t, e.COMPILE_STATUS)) {
+    const r = e.getShaderInfoLog(t) ?? "Unknown shader compile error.";
+    throw e.deleteShader(t), new Error(r);
   }
-  return o;
-}, b = (t, n, e, o) => {
-  const i = T(t, t.VERTEX_SHADER, n), s = T(t, t.FRAGMENT_SHADER, e), r = t.createProgram();
-  if (!r)
+  return t;
+}, E = (e, n, o, t) => {
+  const r = w(e, e.VERTEX_SHADER, n), a = w(e, e.FRAGMENT_SHADER, o), i = e.createProgram();
+  if (!i)
     throw new Error("Unable to create WebGL program.");
-  if (t.attachShader(r, i), t.attachShader(r, s), o && t.transformFeedbackVaryings(r, o, t.SEPARATE_ATTRIBS), t.linkProgram(r), t.deleteShader(i), t.deleteShader(s), !t.getProgramParameter(r, t.LINK_STATUS)) {
-    const a = t.getProgramInfoLog(r) ?? "Unknown program link error.";
-    throw t.deleteProgram(r), new Error(a);
+  if (e.attachShader(i, r), e.attachShader(i, a), t && e.transformFeedbackVaryings(i, t, e.SEPARATE_ATTRIBS), e.linkProgram(i), e.deleteShader(r), e.deleteShader(a), !e.getProgramParameter(i, e.LINK_STATUS)) {
+    const s = e.getProgramInfoLog(i) ?? "Unknown program link error.";
+    throw e.deleteProgram(i), new Error(s);
   }
-  return r;
-}, g = (t, n, e = t.DYNAMIC_COPY) => {
-  const o = t.createBuffer();
-  if (!o)
+  return i;
+}, p = (e, n, o = e.DYNAMIC_COPY) => {
+  const t = e.createBuffer();
+  if (!t)
     throw new Error("Unable to create WebGL buffer.");
-  return t.bindBuffer(t.ARRAY_BUFFER, o), t.bufferData(t.ARRAY_BUFFER, n, e), t.bindBuffer(t.ARRAY_BUFFER, null), o;
-}, F = (t, {
+  return e.bindBuffer(e.ARRAY_BUFFER, t), e.bufferData(e.ARRAY_BUFFER, n, o), e.bindBuffer(e.ARRAY_BUFFER, null), t;
+}, P = (e, {
   width: n,
-  height: e,
-  data: o = null,
-  internalFormat: i = t.RGBA,
-  format: s = t.RGBA,
-  type: r = t.UNSIGNED_BYTE,
-  minFilter: a = t.LINEAR,
-  magFilter: c = t.LINEAR,
-  wrap: l = t.CLAMP_TO_EDGE
+  height: o,
+  data: t = null,
+  internalFormat: r = e.RGBA,
+  format: a = e.RGBA,
+  type: i = e.UNSIGNED_BYTE,
+  minFilter: s = e.LINEAR,
+  magFilter: c = e.LINEAR,
+  wrap: l = e.CLAMP_TO_EDGE
 }) => {
-  const d = t.createTexture();
+  const d = e.createTexture();
   if (!d)
     throw new Error("Unable to create WebGL texture.");
-  return t.bindTexture(t.TEXTURE_2D, d), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_MIN_FILTER, a), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_MAG_FILTER, c), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_WRAP_S, l), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_WRAP_T, l), n && e ? t.texImage2D(t.TEXTURE_2D, 0, i, n, e, 0, s, r, null) : o && t.texImage2D(t.TEXTURE_2D, 0, i, s, r, o), t.bindTexture(t.TEXTURE_2D, null), d;
-}, R = (t) => new Promise((n, e) => {
-  const o = new Image();
-  o.crossOrigin = "anonymous", o.onload = () => n(o), o.onerror = () => e(new Error(`Failed to load image: ${t}`)), o.src = t;
-}), D = (t) => "displayWidth" in t && "displayHeight" in t ? { width: t.displayWidth, height: t.displayHeight } : "videoWidth" in t && "videoHeight" in t ? { width: t.videoWidth, height: t.videoHeight } : { width: t.width, height: t.height };
-class L {
-  constructor(n, e, o, i) {
+  return e.bindTexture(e.TEXTURE_2D, d), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_MIN_FILTER, s), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_MAG_FILTER, c), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_WRAP_S, l), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_WRAP_T, l), n && o ? e.texImage2D(e.TEXTURE_2D, 0, r, n, o, 0, a, i, null) : t && e.texImage2D(e.TEXTURE_2D, 0, r, a, i, t), e.bindTexture(e.TEXTURE_2D, null), d;
+}, A = (e) => new Promise((n, o) => {
+  const t = new Image();
+  t.crossOrigin = "anonymous", t.onload = () => n(t), t.onerror = () => o(new Error(`Failed to load image: ${e}`)), t.src = e;
+}), O = (e) => "displayWidth" in e && "displayHeight" in e ? { width: e.displayWidth, height: e.displayHeight } : "videoWidth" in e && "videoHeight" in e ? { width: e.videoWidth, height: e.videoHeight } : { width: e.width, height: e.height };
+class V {
+  constructor(n, o, t, r) {
     f(this, "transformFeedback");
     f(this, "edgeFramebuffer");
     f(this, "edgeTexture");
@@ -155,63 +172,72 @@ class L {
     f(this, "currentIndex", 0);
     f(this, "time", 0);
     f(this, "noiseSeed", Math.random() * 1e3);
-    this.gl = n, this.glState = e, this.programs = o, this.options = i;
-    const s = n.createTransformFeedback(), r = n.createFramebuffer(), a = n.createVertexArray();
-    if (!s || !r || !a)
+    this.gl = n, this.glState = o, this.programs = t, this.options = r;
+    const a = n.createTransformFeedback(), i = n.createFramebuffer(), s = n.createVertexArray();
+    if (!a || !i || !s)
       throw new Error("Unable to initialize WebGL particle resources.");
-    this.transformFeedback = s, this.edgeFramebuffer = r, this.edgeVao = a, this.edgeTexture = F(n, {
+    this.transformFeedback = a, this.edgeFramebuffer = i, this.edgeVao = s, this.edgeTexture = P(n, {
       width: n.canvas.width,
       height: n.canvas.height
-    }), this.quadBuffer = g(
+    }), this.quadBuffer = p(
       n,
       new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
       n.STATIC_DRAW
     );
-    const c = new Float32Array(i.particleCount * 2), l = new Float32Array(i.particleCount * 2), d = new Float32Array(i.particleCount * 2);
-    for (let m = 0; m < i.particleCount; m += 1) {
-      const u = m * 2;
-      c[u] = Math.random(), c[u + 1] = Math.random(), l[u] = (Math.random() - 0.5) * 1e-3, l[u + 1] = (Math.random() - 0.5) * 1e-3, d[u] = -1, d[u + 1] = -1;
+    const c = new Float32Array(r.particleCount * 2), l = new Float32Array(r.particleCount * 2), d = new Float32Array(r.particleCount * 2);
+    for (let g = 0; g < r.particleCount; g += 1) {
+      const h = g * 2;
+      c[h] = Math.random(), c[h + 1] = Math.random(), l[h] = (Math.random() - 0.5) * 1e-3, l[h + 1] = (Math.random() - 0.5) * 1e-3, d[h] = -1, d[h + 1] = -1;
     }
-    this.positionBuffers = [g(n, c), g(n, c)], this.velocityBuffers = [g(n, l), g(n, l)], this.targetBuffers = [g(n, d), g(n, d)], this.vaos = [this.createParticleVao(0), this.createParticleVao(1)], this.configureEdgeVao(), this.configureEdgeFramebuffer();
+    this.positionBuffers = [p(n, c), p(n, c)], this.velocityBuffers = [p(n, l), p(n, l)], this.targetBuffers = [p(n, d), p(n, d)], this.vaos = [this.createParticleVao(0), this.createParticleVao(1)], this.configureEdgeVao(), this.configureEdgeFramebuffer();
   }
   processImage(n) {
-    const e = F(this.gl, { data: n }), o = this.gl.getUniformLocation(this.programs.edge, "uResolution"), i = this.gl.getUniformLocation(this.programs.edge, "uImageScale"), s = this.gl.getUniformLocation(this.programs.edge, "uImageOffset"), r = this.gl.getUniformLocation(this.programs.edge, "threshold"), a = this.gl.getUniformLocation(this.programs.edge, "uImage"), c = D(n), l = I({
+    const o = P(this.gl, { data: n }), t = this.gl.getUniformLocation(this.programs.edge, "uResolution"), r = this.gl.getUniformLocation(this.programs.edge, "uImageScale"), a = this.gl.getUniformLocation(this.programs.edge, "uImageOffset"), i = this.gl.getUniformLocation(this.programs.edge, "threshold"), s = this.gl.getUniformLocation(this.programs.edge, "uImage"), c = O(n), l = z({
       fit: this.options.imageFit,
       canvasWidth: this.gl.canvas.width,
       canvasHeight: this.gl.canvas.height,
       imageWidth: c.width,
       imageHeight: c.height
     });
-    this.glState.bindFramebuffer(this.edgeFramebuffer), this.glState.setViewport(this.gl.canvas.width, this.gl.canvas.height), this.glState.useProgram(this.programs.edge), this.gl.uniform2f(o, this.gl.canvas.width, this.gl.canvas.height), this.gl.uniform2f(i, l.scaleX, l.scaleY), this.gl.uniform2f(s, l.offsetX, l.offsetY), this.gl.uniform1f(r, this.options.edgeThreshold), this.gl.activeTexture(this.gl.TEXTURE0), this.gl.bindTexture(this.gl.TEXTURE_2D, e), this.gl.uniform1i(a, 0), this.glState.bindVao(this.edgeVao), this.gl.drawArrays(this.gl.TRIANGLES, 0, 6), this.gl.deleteTexture(e), this.glState.bindFramebuffer(null);
+    this.glState.bindFramebuffer(this.edgeFramebuffer), this.glState.setViewport(this.gl.canvas.width, this.gl.canvas.height), this.glState.useProgram(this.programs.edge), this.gl.uniform2f(t, this.gl.canvas.width, this.gl.canvas.height), this.gl.uniform2f(r, l.scaleX, l.scaleY), this.gl.uniform2f(a, l.offsetX, l.offsetY), this.gl.uniform1f(i, this.options.edgeThreshold), this.gl.activeTexture(this.gl.TEXTURE0), this.gl.bindTexture(this.gl.TEXTURE_2D, o), this.gl.uniform1i(s, 0), this.glState.bindVao(this.edgeVao), this.gl.drawArrays(this.gl.TRIANGLES, 0, 6), this.gl.deleteTexture(o), this.glState.bindFramebuffer(null);
   }
-  update(n) {
+  update(n, o) {
     this.time += n * 1e-3;
-    const e = this.gl;
-    this.glState.useProgram(this.programs.update), e.uniform1f(e.getUniformLocation(this.programs.update, "deltaTime"), n * 1e-3), e.uniform2f(
-      e.getUniformLocation(this.programs.update, "resolution"),
-      e.canvas.width,
-      e.canvas.height
-    ), e.uniform1f(e.getUniformLocation(this.programs.update, "particleSpeed"), this.options.particleSpeed), e.uniform1f(
-      e.getUniformLocation(this.programs.update, "attractionStrength"),
+    const t = this.gl;
+    this.glState.useProgram(this.programs.update), t.uniform1f(t.getUniformLocation(this.programs.update, "deltaTime"), n * 1e-3), t.uniform2f(
+      t.getUniformLocation(this.programs.update, "resolution"),
+      t.canvas.width,
+      t.canvas.height
+    ), t.uniform1f(t.getUniformLocation(this.programs.update, "particleSpeed"), this.options.particleSpeed), t.uniform1f(
+      t.getUniformLocation(this.programs.update, "attractionStrength"),
       this.options.attractionStrength
-    ), e.uniform1f(e.getUniformLocation(this.programs.update, "searchRadius"), this.options.searchRadius), e.uniform1f(e.getUniformLocation(this.programs.update, "time"), this.time), e.uniform1f(e.getUniformLocation(this.programs.update, "noiseSeed"), this.noiseSeed), e.uniform1f(
-      e.getUniformLocation(this.programs.update, "flowFieldScale"),
+    ), t.uniform1f(t.getUniformLocation(this.programs.update, "searchRadius"), this.options.searchRadius), t.uniform1f(t.getUniformLocation(this.programs.update, "time"), this.time), t.uniform1f(t.getUniformLocation(this.programs.update, "noiseSeed"), this.noiseSeed), t.uniform1f(
+      t.getUniformLocation(this.programs.update, "flowFieldScale"),
       this.options.flowFieldScale
-    ), e.uniform1i(
-      e.getUniformLocation(this.programs.update, "use3DNoise"),
+    ), t.uniform1i(
+      t.getUniformLocation(this.programs.update, "use3DNoise"),
       this.options.noiseType === "3D" ? 1 : 0
-    ), e.activeTexture(e.TEXTURE0), e.bindTexture(e.TEXTURE_2D, this.edgeTexture), e.uniform1i(e.getUniformLocation(this.programs.update, "edgeTexture"), 0), this.glState.bindVao(this.vaos[this.currentIndex]), e.bindTransformFeedback(e.TRANSFORM_FEEDBACK, this.transformFeedback), e.bindBufferBase(e.TRANSFORM_FEEDBACK_BUFFER, 0, this.positionBuffers[1 - this.currentIndex]), e.bindBufferBase(e.TRANSFORM_FEEDBACK_BUFFER, 1, this.velocityBuffers[1 - this.currentIndex]), e.bindBufferBase(e.TRANSFORM_FEEDBACK_BUFFER, 2, this.targetBuffers[1 - this.currentIndex]), e.enable(e.RASTERIZER_DISCARD), e.beginTransformFeedback(e.POINTS), e.drawArrays(e.POINTS, 0, this.options.particleCount), e.endTransformFeedback(), e.disable(e.RASTERIZER_DISCARD), e.bindTransformFeedback(e.TRANSFORM_FEEDBACK, null), e.bindBufferBase(e.TRANSFORM_FEEDBACK_BUFFER, 0, null), e.bindBufferBase(e.TRANSFORM_FEEDBACK_BUFFER, 1, null), e.bindBufferBase(e.TRANSFORM_FEEDBACK_BUFFER, 2, null), this.currentIndex = 1 - this.currentIndex;
+    ), t.uniform2f(t.getUniformLocation(this.programs.update, "cursorPosition"), o.x, o.y), t.uniform1i(
+      t.getUniformLocation(this.programs.update, "cursorActive"),
+      this.options.interactive && o.active ? 1 : 0
+    ), t.uniform1f(t.getUniformLocation(this.programs.update, "cursorRadius"), this.options.cursorRadius), t.uniform1f(
+      t.getUniformLocation(this.programs.update, "cursorStrength"),
+      this.options.cursorStrength
+    ), t.uniform1f(
+      t.getUniformLocation(this.programs.update, "cursorDirection"),
+      this.options.cursorMode === "attract" ? 1 : -1
+    ), t.activeTexture(t.TEXTURE0), t.bindTexture(t.TEXTURE_2D, this.edgeTexture), t.uniform1i(t.getUniformLocation(this.programs.update, "edgeTexture"), 0), this.glState.bindVao(this.vaos[this.currentIndex]), t.bindTransformFeedback(t.TRANSFORM_FEEDBACK, this.transformFeedback), t.bindBufferBase(t.TRANSFORM_FEEDBACK_BUFFER, 0, this.positionBuffers[1 - this.currentIndex]), t.bindBufferBase(t.TRANSFORM_FEEDBACK_BUFFER, 1, this.velocityBuffers[1 - this.currentIndex]), t.bindBufferBase(t.TRANSFORM_FEEDBACK_BUFFER, 2, this.targetBuffers[1 - this.currentIndex]), t.enable(t.RASTERIZER_DISCARD), t.beginTransformFeedback(t.POINTS), t.drawArrays(t.POINTS, 0, this.options.particleCount), t.endTransformFeedback(), t.disable(t.RASTERIZER_DISCARD), t.bindTransformFeedback(t.TRANSFORM_FEEDBACK, null), t.bindBufferBase(t.TRANSFORM_FEEDBACK_BUFFER, 0, null), t.bindBufferBase(t.TRANSFORM_FEEDBACK_BUFFER, 1, null), t.bindBufferBase(t.TRANSFORM_FEEDBACK_BUFFER, 2, null), this.currentIndex = 1 - this.currentIndex;
   }
   render() {
-    const [n, e, o] = P(this.options.particleColor), i = this.gl;
-    this.glState.useProgram(this.programs.particle), this.glState.bindVao(this.vaos[this.currentIndex]), i.uniform3f(i.getUniformLocation(this.programs.particle, "uParticleColor"), n, e, o), i.uniform1f(
-      i.getUniformLocation(this.programs.particle, "uParticleOpacity"),
+    const [n, o, t] = U(this.options.particleColor), r = this.gl;
+    this.glState.useProgram(this.programs.particle), this.glState.bindVao(this.vaos[this.currentIndex]), r.uniform3f(r.getUniformLocation(this.programs.particle, "uParticleColor"), n, o, t), r.uniform1f(
+      r.getUniformLocation(this.programs.particle, "uParticleOpacity"),
       this.options.particleOpacity
-    ), i.uniform1f(i.getUniformLocation(this.programs.particle, "particleSize"), this.options.particleSize), i.enable(i.BLEND), i.blendFunc(i.SRC_ALPHA, i.ONE_MINUS_SRC_ALPHA), i.drawArrays(i.POINTS, 0, this.options.particleCount), i.disable(i.BLEND);
+    ), r.uniform1f(r.getUniformLocation(this.programs.particle, "particleSize"), this.options.particleSize), r.enable(r.BLEND), r.blendFunc(r.SRC_ALPHA, r.ONE_MINUS_SRC_ALPHA), r.drawArrays(r.POINTS, 0, this.options.particleCount), r.disable(r.BLEND);
   }
   dispose() {
     const n = this.gl;
-    n.deleteTransformFeedback(this.transformFeedback), n.deleteFramebuffer(this.edgeFramebuffer), n.deleteTexture(this.edgeTexture), n.deleteBuffer(this.quadBuffer), this.positionBuffers.forEach((e) => n.deleteBuffer(e)), this.velocityBuffers.forEach((e) => n.deleteBuffer(e)), this.targetBuffers.forEach((e) => n.deleteBuffer(e)), n.deleteVertexArray(this.edgeVao), this.vaos.forEach((e) => n.deleteVertexArray(e));
+    n.deleteTransformFeedback(this.transformFeedback), n.deleteFramebuffer(this.edgeFramebuffer), n.deleteTexture(this.edgeTexture), n.deleteBuffer(this.quadBuffer), this.positionBuffers.forEach((o) => n.deleteBuffer(o)), this.velocityBuffers.forEach((o) => n.deleteBuffer(o)), this.targetBuffers.forEach((o) => n.deleteBuffer(o)), n.deleteVertexArray(this.edgeVao), this.vaos.forEach((o) => n.deleteVertexArray(o));
   }
   configureEdgeFramebuffer() {
     if (this.glState.bindFramebuffer(this.edgeFramebuffer), this.gl.framebufferTexture2D(
@@ -230,16 +256,16 @@ class L {
     this.gl.enableVertexAttribArray(n), this.gl.vertexAttribPointer(n, 2, this.gl.FLOAT, !1, 0, 0);
   }
   createParticleVao(n) {
-    const e = this.gl.createVertexArray();
-    if (!e)
+    const o = this.gl.createVertexArray();
+    if (!o)
       throw new Error("Unable to create particle VAO.");
-    return this.glState.bindVao(e), this.bindParticleAttribute(this.positionBuffers[n], 0), this.bindParticleAttribute(this.velocityBuffers[n], 1), this.bindParticleAttribute(this.targetBuffers[n], 2), e;
+    return this.glState.bindVao(o), this.bindParticleAttribute(this.positionBuffers[n], 0), this.bindParticleAttribute(this.velocityBuffers[n], 1), this.bindParticleAttribute(this.targetBuffers[n], 2), o;
   }
-  bindParticleAttribute(n, e) {
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, n), this.gl.enableVertexAttribArray(e), this.gl.vertexAttribPointer(e, 2, this.gl.FLOAT, !1, 0, 0);
+  bindParticleAttribute(n, o) {
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, n), this.gl.enableVertexAttribArray(o), this.gl.vertexAttribPointer(o, 2, this.gl.FLOAT, !1, 0, 0);
   }
 }
-const z = `#version 300 es
+const M = `#version 300 es
 precision highp float;
 
 in vec2 vTexCoord;
@@ -281,14 +307,14 @@ void main() {
     
     fragColor = vec4(edge, edge, edge, 1.0);
 }
-`, N = `#version 300 es
+`, k = `#version 300 es
 in vec2 aPosition;
 out vec2 vTexCoord;
 
 void main() {
     vTexCoord = vec2(aPosition.x * 0.5 + 0.5, (aPosition.y * 0.5 + 0.5));
     gl_Position = vec4(aPosition, 0.0, 1.0);
-}`, O = `#version 300 es
+}`, X = `#version 300 es
 precision highp float;
 
 in vec2 vPosition;
@@ -301,7 +327,7 @@ void main() {
     float dist = length(gl_PointCoord - vec2(0.5));
     if (dist > 0.5) discard;
     fragColor = vec4(uParticleColor, uParticleOpacity);
-}`, V = `#version 300 es
+}`, G = `#version 300 es
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 velocity;
 layout(location = 2) in vec2 target;
@@ -319,12 +345,12 @@ void main() {
     gl_Position = vec4(position * 2.0 - 1.0, 0, 1);
     gl_PointSize = 2.0 * particleSize;
 }
-`, k = `#version 300 es
+`, Y = `#version 300 es
 precision highp float;
 out vec4 fragColor;
 void main() {
     fragColor = vec4(0.0);
-}`, M = `#version 300 es
+}`, W = `#version 300 es
 
 // Input attributes from vertex buffers
 layout(location = 0) in vec2 position;    // Current particle position (normalized 0-1)
@@ -347,6 +373,11 @@ uniform float time;                 // Global time for animation
 uniform float noiseSeed;            // Random seed for Perlin noise
 uniform float flowFieldScale;      // Scale factor for the flow field
 uniform bool use3DNoise;        // Whether to use 3D noise instead of 2D
+uniform vec2 cursorPosition;        // Cursor position in normalized particle coordinates
+uniform bool cursorActive;          // Whether cursor force should be applied
+uniform float cursorRadius;         // Cursor influence radius in normalized coordinates
+uniform float cursorStrength;       // Cursor force multiplier
+uniform float cursorDirection;      // -1 repels from cursor, 1 attracts toward cursor
 
 /**
  * Generate a pseudo-random number in range [0,1] based on a 2D coordinate
@@ -585,6 +616,24 @@ void main() {
         vel = mix(vel, velocity, 0.3);
     }
     
+    if (cursorActive && cursorRadius > 0.0 && cursorStrength > 0.0) {
+        vec2 toCursor = cursorPosition - pos;
+        float cursorDistance = length(toCursor);
+        float cursorFalloff = smoothstep(cursorRadius, 0.0, cursorDistance);
+
+        if (cursorFalloff > 0.0 && cursorDistance > 0.0001) {
+            vec2 cursorForce = normalize(toCursor) *
+                cursorDirection *
+                cursorFalloff *
+                cursorFalloff *
+                cursorStrength *
+                particleSpeed *
+                0.004;
+            vel += cursorForce;
+            tgt = vec2(-1.0);
+        }
+    }
+
     // Update position using velocity and delta time
     pos += vel * deltaTime;
     
@@ -606,75 +655,85 @@ void main() {
     vVelocity = vel;
     vTarget = tgt;
 }
-`, p = {
+`, v = {
   edge: {
-    fragment: z,
-    vertex: N
+    fragment: M,
+    vertex: k
   },
   particle: {
-    fragment: O,
-    vertex: V
+    fragment: X,
+    vertex: G
   },
   update: {
-    fragment: k,
-    vertex: M
+    fragment: Y,
+    vertex: W
   }
-}, Y = async (t, n = {}) => {
-  const e = C(n), o = t.getContext("webgl2", {
+}, K = async (e, n = {}) => {
+  const o = D(n), t = e.getContext("webgl2", {
     alpha: !1,
     antialias: !1,
     depth: !1,
     preserveDrawingBuffer: !1
   });
-  if (!o)
+  if (!t)
     throw new Error("WebGL2 is required to run Particular Drift.");
-  const i = new _(o), s = {
-    edge: b(o, p.edge.vertex, p.edge.fragment),
-    particle: b(o, p.particle.vertex, p.particle.fragment),
-    update: b(o, p.update.vertex, p.update.fragment, [
+  const r = new N(t), a = {
+    edge: E(t, v.edge.vertex, v.edge.fragment),
+    particle: E(t, v.particle.vertex, v.particle.fragment),
+    update: E(t, v.update.vertex, v.update.fragment, [
       "vPosition",
       "vVelocity",
       "vTarget"
     ])
   };
-  let r, a, c = 0, l = !1;
-  const d = () => {
-    const h = t.getBoundingClientRect(), { width: v, height: S } = B({
-      cssWidth: h.width || t.clientWidth || 1,
-      cssHeight: h.height || t.clientHeight || 1,
-      maxDevicePixelRatio: e.maxDevicePixelRatio
+  let i, s, c = 0, l = !1;
+  const d = { x: 0.5, y: 0.5, active: !1 }, g = () => {
+    const u = e.getBoundingClientRect(), { width: m, height: T } = _({
+      cssWidth: u.width || e.clientWidth || 1,
+      cssHeight: u.height || e.clientHeight || 1,
+      maxDevicePixelRatio: o.maxDevicePixelRatio
     });
-    (t.width !== v || t.height !== S) && (t.width = v, t.height = S), i.setViewport(t.width, t.height);
-  }, m = () => {
-    i.setClearColor(P(e.backgroundColor)), i.clear();
-  }, u = () => {
-    a !== void 0 && (cancelAnimationFrame(a), a = void 0), c = 0;
-  }, y = (h) => {
-    if (!r || l) return;
-    const v = c ? h - c : 0;
-    c = h, m(), r.update(v), r.render(), a = requestAnimationFrame(y);
-  }, E = () => {
-    a === void 0 && r && !l && (a = requestAnimationFrame(y));
-  }, x = async (h) => {
-    u(), r == null || r.dispose(), d(), m(), r = new L(o, i, s, e), r.processImage(h), e.autoStart && E();
+    (e.width !== m || e.height !== T) && (e.width = m, e.height = T), r.setViewport(e.width, e.height);
+  }, h = () => {
+    r.setClearColor(U(o.backgroundColor)), r.clear();
+  }, S = (u) => {
+    const m = L({
+      clientX: u.clientX,
+      clientY: u.clientY,
+      rect: e.getBoundingClientRect()
+    });
+    d.x = m.x, d.y = m.y, d.active = m.active;
+  }, x = () => {
+    d.active = !1;
+  }, b = () => {
+    s !== void 0 && (cancelAnimationFrame(s), s = void 0), c = 0;
+  }, F = (u) => {
+    if (!i || l) return;
+    const m = c ? u - c : 0;
+    c = u, h(), i.update(m, d), i.render(), s = requestAnimationFrame(F);
+  }, R = () => {
+    s === void 0 && i && !l && (s = requestAnimationFrame(F));
+  }, y = async (u) => {
+    b(), i == null || i.dispose(), g(), h(), i = new V(t, r, a, o), i.processImage(u), o.autoStart && R();
   };
-  return e.imageUrl ? await x(await R(e.imageUrl)) : (d(), m()), {
-    loadImage: x,
-    loadImageUrl: async (h) => x(await R(h)),
-    resize: d,
-    start: E,
-    stop: u,
+  return o.imageUrl ? await y(await A(o.imageUrl)) : (g(), h()), o.interactive && (e.addEventListener("pointermove", S, { passive: !0 }), e.addEventListener("pointerleave", x), e.addEventListener("pointercancel", x)), {
+    loadImage: y,
+    loadImageUrl: async (u) => y(await A(u)),
+    resize: g,
+    start: R,
+    stop: b,
     destroy: () => {
-      l = !0, u(), r == null || r.dispose(), Object.values(s).forEach((h) => o.deleteProgram(h));
+      l = !0, b(), e.removeEventListener("pointermove", S), e.removeEventListener("pointerleave", x), e.removeEventListener("pointercancel", x), i == null || i.dispose(), Object.values(a).forEach((u) => t.deleteProgram(u));
     }
   };
 };
 export {
-  w as DEFAULT_PARTICULAR_DRIFT_OPTIONS,
-  Y as createParticularDrift,
-  C as getResolvedOptions,
-  P as hexToRgbUnit,
-  G as isWebGL2Supported,
-  B as resolveCanvasSize,
-  I as resolveImageFit
+  C as DEFAULT_PARTICULAR_DRIFT_OPTIONS,
+  K as createParticularDrift,
+  D as getResolvedOptions,
+  U as hexToRgbUnit,
+  q as isWebGL2Supported,
+  _ as resolveCanvasSize,
+  L as resolveCursorPosition,
+  z as resolveImageFit
 };

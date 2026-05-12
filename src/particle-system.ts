@@ -8,6 +8,12 @@ export type ParticleSystemPrograms = {
   update: WebGLProgram;
 };
 
+export type ParticleCursorState = {
+  x: number;
+  y: number;
+  active: boolean;
+};
+
 const getTexImageSourceSize = (image: TexImageSource): { width: number; height: number } => {
   if ('displayWidth' in image && 'displayHeight' in image) {
     return { width: image.displayWidth, height: image.displayHeight };
@@ -126,7 +132,7 @@ export class ParticleSystem {
     this.glState.bindFramebuffer(null);
   }
 
-  update(deltaTimeMs: number): void {
+  update(deltaTimeMs: number, cursor: ParticleCursorState): void {
     this.time += deltaTimeMs * 0.001;
     const gl = this.gl;
 
@@ -152,6 +158,20 @@ export class ParticleSystem {
     gl.uniform1i(
       gl.getUniformLocation(this.programs.update, 'use3DNoise'),
       this.options.noiseType === '3D' ? 1 : 0
+    );
+    gl.uniform2f(gl.getUniformLocation(this.programs.update, 'cursorPosition'), cursor.x, cursor.y);
+    gl.uniform1i(
+      gl.getUniformLocation(this.programs.update, 'cursorActive'),
+      this.options.interactive && cursor.active ? 1 : 0
+    );
+    gl.uniform1f(gl.getUniformLocation(this.programs.update, 'cursorRadius'), this.options.cursorRadius);
+    gl.uniform1f(
+      gl.getUniformLocation(this.programs.update, 'cursorStrength'),
+      this.options.cursorStrength
+    );
+    gl.uniform1f(
+      gl.getUniformLocation(this.programs.update, 'cursorDirection'),
+      this.options.cursorMode === 'attract' ? 1 : -1
     );
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.edgeTexture);

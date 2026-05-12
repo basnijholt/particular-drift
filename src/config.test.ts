@@ -4,6 +4,7 @@ import {
   DEFAULT_PARTICULAR_DRIFT_OPTIONS,
   getResolvedOptions,
   hexToRgbUnit,
+  resolveCursorPosition,
   resolveCanvasSize,
   resolveImageFit,
 } from './config';
@@ -14,6 +15,8 @@ describe('particular drift config', () => {
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.autoStart).toBe(true);
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.backgroundColor).toMatch(/^#[0-9a-f]{6}$/i);
     expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.imageFit).toBe('contain');
+    expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.interactive).toBe(true);
+    expect(DEFAULT_PARTICULAR_DRIFT_OPTIONS.cursorMode).toBe('repel');
   });
 
   it('merges user options without mutating the default object', () => {
@@ -73,5 +76,35 @@ describe('particular drift config', () => {
       offsetX: 0,
       offsetY: 0,
     });
+  });
+
+  it('resolves client pointer coordinates to normalized particle coordinates', () => {
+    expect(
+      resolveCursorPosition({
+        clientX: 150,
+        clientY: 75,
+        rect: { left: 50, top: 25, width: 200, height: 100 },
+      })
+    ).toEqual({ x: 0.5, y: 0.5, active: true });
+  });
+
+  it('flips client y coordinates into WebGL particle coordinates', () => {
+    expect(
+      resolveCursorPosition({
+        clientX: 50,
+        clientY: 25,
+        rect: { left: 50, top: 25, width: 200, height: 100 },
+      })
+    ).toEqual({ x: 0, y: 1, active: true });
+  });
+
+  it('marks pointer coordinates outside the canvas inactive', () => {
+    expect(
+      resolveCursorPosition({
+        clientX: 20,
+        clientY: 75,
+        rect: { left: 50, top: 25, width: 200, height: 100 },
+      })
+    ).toEqual({ x: 0, y: 0.5, active: false });
   });
 });

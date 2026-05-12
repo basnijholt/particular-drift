@@ -1,5 +1,6 @@
 export type NoiseType = '2D' | '3D';
 export type ImageFit = 'contain' | 'stretch';
+export type CursorMode = 'repel' | 'attract';
 
 export type ParticularDriftOptions = {
   imageUrl?: string;
@@ -13,6 +14,10 @@ export type ParticularDriftOptions = {
   flowFieldScale: number;
   searchRadius: number;
   noiseType: NoiseType;
+  interactive: boolean;
+  cursorMode: CursorMode;
+  cursorRadius: number;
+  cursorStrength: number;
   backgroundColor: string;
   particleColor: string;
   autoStart: boolean;
@@ -32,6 +37,10 @@ export const DEFAULT_PARTICULAR_DRIFT_OPTIONS: ParticularDriftOptions = {
   flowFieldScale: 4,
   searchRadius: 0.02,
   noiseType: '2D',
+  interactive: true,
+  cursorMode: 'repel',
+  cursorRadius: 0.12,
+  cursorStrength: 1.4,
   backgroundColor: '#0f0d2e',
   particleColor: '#dda290',
   autoStart: true,
@@ -100,6 +109,38 @@ export type ResolvedImageFit = {
   scaleY: number;
   offsetX: number;
   offsetY: number;
+};
+
+export type ResolveCursorPositionInput = {
+  clientX: number;
+  clientY: number;
+  rect: Pick<DOMRectReadOnly, 'left' | 'top' | 'width' | 'height'>;
+};
+
+export type ResolvedCursorPosition = {
+  x: number;
+  y: number;
+  active: boolean;
+};
+
+export const resolveCursorPosition = ({
+  clientX,
+  clientY,
+  rect,
+}: ResolveCursorPositionInput): ResolvedCursorPosition => {
+  if (rect.width <= 0 || rect.height <= 0) {
+    return { x: 0, y: 0, active: false };
+  }
+
+  const x = (clientX - rect.left) / rect.width;
+  const clientYUnit = (clientY - rect.top) / rect.height;
+  const y = 1 - clientYUnit;
+
+  return {
+    x: Math.min(1, Math.max(0, x)),
+    y: Math.min(1, Math.max(0, y)),
+    active: x >= 0 && x <= 1 && clientYUnit >= 0 && clientYUnit <= 1,
+  };
 };
 
 export const resolveImageFit = ({

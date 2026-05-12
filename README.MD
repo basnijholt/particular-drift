@@ -31,6 +31,7 @@ if (canvas) {
     backgroundColor: '#0f0d2e',
     particleColor: '#dda290',
     particleCount: 120000,
+    cursorMode: 'repel',
   });
 
   window.addEventListener('resize', drift.resize);
@@ -79,6 +80,10 @@ Main options:
 - `flowFieldScale`
 - `searchRadius`
 - `noiseType`: `'2D'` or `'3D'`
+- `interactive`: enables pointer interaction when `true`.
+- `cursorMode`: `'repel'` pushes particles away from the cursor; `'attract'` pulls them toward it.
+- `cursorRadius`: normalized cursor influence radius.
+- `cursorStrength`: cursor force multiplier.
 - `backgroundColor`
 - `particleColor`
 - `autoStart`

@@ -14,6 +14,43 @@ export type ParticleCursorState = {
   active: boolean;
 };
 
+type UniformLocations<T extends readonly string[]> = {
+  [K in T[number]]: WebGLUniformLocation | null;
+};
+
+const edgeUniformNames = ['uResolution', 'uImageScale', 'uImageOffset', 'threshold', 'uImage'] as const;
+const updateUniformNames = [
+  'deltaTime',
+  'resolution',
+  'particleSpeed',
+  'attractionStrength',
+  'searchRadius',
+  'time',
+  'noiseSeed',
+  'flowFieldScale',
+  'use3DNoise',
+  'cursorPosition',
+  'cursorActive',
+  'cursorRadius',
+  'cursorStrength',
+  'cursorDirection',
+  'cursorReturnStrength',
+  'cursorReturnDamping',
+  'edgeTexture',
+] as const;
+const particleUniformNames = ['uParticleColor', 'uParticleOpacity', 'particleSize'] as const;
+
+type EdgeUniformLocations = UniformLocations<typeof edgeUniformNames>;
+type UpdateUniformLocations = UniformLocations<typeof updateUniformNames>;
+type ParticleUniformLocations = UniformLocations<typeof particleUniformNames>;
+
+export const createUniformLocations = <const T extends readonly string[]>(
+  gl: WebGL2RenderingContext,
+  program: WebGLProgram,
+  names: T
+): UniformLocations<T> =>
+  Object.fromEntries(names.map((name) => [name, gl.getUniformLocation(program, name)])) as UniformLocations<T>;
+
 const getTexImageSourceSize = (image: TexImageSource): { width: number; height: number } => {
   if ('displayWidth' in image && 'displayHeight' in image) {
     return { width: image.displayWidth, height: image.displayHeight };
@@ -45,6 +82,14 @@ export class ParticleSystem {
 
   private readonly vaos: [WebGLVertexArrayObject, WebGLVertexArrayObject];
 
+  private readonly edgeUniforms: EdgeUniformLocations;
+
+  private readonly updateUniforms: UpdateUniformLocations;
+
+  private readonly particleUniforms: ParticleUniformLocations;
+
+  private readonly particleColor: [number, number, number];
+
   private currentIndex = 0;
 
   private time = 0;
@@ -68,6 +113,10 @@ export class ParticleSystem {
     this.transformFeedback = transformFeedback;
     this.edgeFramebuffer = edgeFramebuffer;
     this.edgeVao = edgeVao;
+    this.edgeUniforms = createUniformLocations(gl, programs.edge, edgeUniformNames);
+    this.updateUniforms = createUniformLocations(gl, programs.update, updateUniformNames);
+    this.particleUniforms = createUniformLocations(gl, programs.particle, particleUniformNames);
+    this.particleColor = hexToRgbUnit(options.particleColor);
     this.edgeTexture = createTexture(gl, {
       width: gl.canvas.width,
       height: gl.canvas.height,
@@ -98,15 +147,11 @@ export class ParticleSystem {
     this.vaos = [this.createParticleVao(0), this.createParticleVao(1)];
     this.configureEdgeVao();
     this.configureEdgeFramebuffer();
+    this.configureStaticUniforms();
   }
 
   processImage(image: TexImageSource): void {
     const texture = createTexture(this.gl, { data: image });
-    const resolution = this.gl.getUniformLocation(this.programs.edge, 'uResolution');
-    const imageScale = this.gl.getUniformLocation(this.programs.edge, 'uImageScale');
-    const imageOffset = this.gl.getUniformLocation(this.programs.edge, 'uImageOffset');
-    const threshold = this.gl.getUniformLocation(this.programs.edge, 'threshold');
-    const imageUniform = this.gl.getUniformLocation(this.programs.edge, 'uImage');
     const imageSize = getTexImageSourceSize(image);
     const fit = resolveImageFit({
       fit: this.options.imageFit,
@@ -119,13 +164,13 @@ export class ParticleSystem {
     this.glState.bindFramebuffer(this.edgeFramebuffer);
     this.glState.setViewport(this.gl.canvas.width, this.gl.canvas.height);
     this.glState.useProgram(this.programs.edge);
-    this.gl.uniform2f(resolution, this.gl.canvas.width, this.gl.canvas.height);
-    this.gl.uniform2f(imageScale, fit.scaleX, fit.scaleY);
-    this.gl.uniform2f(imageOffset, fit.offsetX, fit.offsetY);
-    this.gl.uniform1f(threshold, this.options.edgeThreshold);
+    this.gl.uniform2f(this.edgeUniforms.uResolution, this.gl.canvas.width, this.gl.canvas.height);
+    this.gl.uniform2f(this.edgeUniforms.uImageScale, fit.scaleX, fit.scaleY);
+    this.gl.uniform2f(this.edgeUniforms.uImageOffset, fit.offsetX, fit.offsetY);
+    this.gl.uniform1f(this.edgeUniforms.threshold, this.options.edgeThreshold);
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-    this.gl.uniform1i(imageUniform, 0);
+    this.gl.uniform1i(this.edgeUniforms.uImage, 0);
     this.glState.bindVao(this.edgeVao);
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
     this.gl.deleteTexture(texture);
@@ -137,53 +182,13 @@ export class ParticleSystem {
     const gl = this.gl;
 
     this.glState.useProgram(this.programs.update);
-    gl.uniform1f(gl.getUniformLocation(this.programs.update, 'deltaTime'), deltaTimeMs * 0.001);
-    gl.uniform2f(
-      gl.getUniformLocation(this.programs.update, 'resolution'),
-      gl.canvas.width,
-      gl.canvas.height
-    );
-    gl.uniform1f(gl.getUniformLocation(this.programs.update, 'particleSpeed'), this.options.particleSpeed);
-    gl.uniform1f(
-      gl.getUniformLocation(this.programs.update, 'attractionStrength'),
-      this.options.attractionStrength
-    );
-    gl.uniform1f(gl.getUniformLocation(this.programs.update, 'searchRadius'), this.options.searchRadius);
-    gl.uniform1f(gl.getUniformLocation(this.programs.update, 'time'), this.time);
-    gl.uniform1f(gl.getUniformLocation(this.programs.update, 'noiseSeed'), this.noiseSeed);
-    gl.uniform1f(
-      gl.getUniformLocation(this.programs.update, 'flowFieldScale'),
-      this.options.flowFieldScale
-    );
-    gl.uniform1i(
-      gl.getUniformLocation(this.programs.update, 'use3DNoise'),
-      this.options.noiseType === '3D' ? 1 : 0
-    );
-    gl.uniform2f(gl.getUniformLocation(this.programs.update, 'cursorPosition'), cursor.x, cursor.y);
-    gl.uniform1i(
-      gl.getUniformLocation(this.programs.update, 'cursorActive'),
-      this.options.interactive && cursor.active ? 1 : 0
-    );
-    gl.uniform1f(gl.getUniformLocation(this.programs.update, 'cursorRadius'), this.options.cursorRadius);
-    gl.uniform1f(
-      gl.getUniformLocation(this.programs.update, 'cursorStrength'),
-      this.options.cursorStrength
-    );
-    gl.uniform1f(
-      gl.getUniformLocation(this.programs.update, 'cursorDirection'),
-      this.options.cursorMode === 'attract' ? 1 : -1
-    );
-    gl.uniform1f(
-      gl.getUniformLocation(this.programs.update, 'cursorReturnStrength'),
-      this.options.cursorReturnStrength
-    );
-    gl.uniform1f(
-      gl.getUniformLocation(this.programs.update, 'cursorReturnDamping'),
-      this.options.cursorReturnDamping
-    );
+    gl.uniform1f(this.updateUniforms.deltaTime, deltaTimeMs * 0.001);
+    gl.uniform2f(this.updateUniforms.resolution, gl.canvas.width, gl.canvas.height);
+    gl.uniform1f(this.updateUniforms.time, this.time);
+    gl.uniform2f(this.updateUniforms.cursorPosition, cursor.x, cursor.y);
+    gl.uniform1i(this.updateUniforms.cursorActive, this.options.interactive && cursor.active ? 1 : 0);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.edgeTexture);
-    gl.uniform1i(gl.getUniformLocation(this.programs.update, 'edgeTexture'), 0);
 
     this.glState.bindVao(this.vaos[this.currentIndex]);
     gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.transformFeedback);
@@ -204,17 +209,10 @@ export class ParticleSystem {
   }
 
   render(): void {
-    const [r, g, b] = hexToRgbUnit(this.options.particleColor);
     const gl = this.gl;
 
     this.glState.useProgram(this.programs.particle);
     this.glState.bindVao(this.vaos[this.currentIndex]);
-    gl.uniform3f(gl.getUniformLocation(this.programs.particle, 'uParticleColor'), r, g, b);
-    gl.uniform1f(
-      gl.getUniformLocation(this.programs.particle, 'uParticleOpacity'),
-      this.options.particleOpacity
-    );
-    gl.uniform1f(gl.getUniformLocation(this.programs.particle, 'particleSize'), this.options.particleSize);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.drawArrays(gl.POINTS, 0, this.options.particleCount);
@@ -249,6 +247,30 @@ export class ParticleSystem {
     }
 
     this.glState.bindFramebuffer(null);
+  }
+
+  private configureStaticUniforms(): void {
+    const gl = this.gl;
+    const [r, g, b] = this.particleColor;
+
+    this.glState.useProgram(this.programs.update);
+    gl.uniform1f(this.updateUniforms.particleSpeed, this.options.particleSpeed);
+    gl.uniform1f(this.updateUniforms.attractionStrength, this.options.attractionStrength);
+    gl.uniform1f(this.updateUniforms.searchRadius, this.options.searchRadius);
+    gl.uniform1f(this.updateUniforms.noiseSeed, this.noiseSeed);
+    gl.uniform1f(this.updateUniforms.flowFieldScale, this.options.flowFieldScale);
+    gl.uniform1i(this.updateUniforms.use3DNoise, this.options.noiseType === '3D' ? 1 : 0);
+    gl.uniform1f(this.updateUniforms.cursorRadius, this.options.cursorRadius);
+    gl.uniform1f(this.updateUniforms.cursorStrength, this.options.cursorStrength);
+    gl.uniform1f(this.updateUniforms.cursorDirection, this.options.cursorMode === 'attract' ? 1 : -1);
+    gl.uniform1f(this.updateUniforms.cursorReturnStrength, this.options.cursorReturnStrength);
+    gl.uniform1f(this.updateUniforms.cursorReturnDamping, this.options.cursorReturnDamping);
+    gl.uniform1i(this.updateUniforms.edgeTexture, 0);
+
+    this.glState.useProgram(this.programs.particle);
+    gl.uniform3f(this.particleUniforms.uParticleColor, r, g, b);
+    gl.uniform1f(this.particleUniforms.uParticleOpacity, this.options.particleOpacity);
+    gl.uniform1f(this.particleUniforms.particleSize, this.options.particleSize);
   }
 
   private configureEdgeVao(): void {

@@ -11,6 +11,10 @@ export type ParticleCursorState = {
     y: number;
     active: boolean;
 };
+type UniformLocations<T extends readonly string[]> = {
+    [K in T[number]]: WebGLUniformLocation | null;
+};
+export declare const createUniformLocations: <const T extends readonly string[]>(gl: WebGL2RenderingContext, program: WebGLProgram, names: T) => UniformLocations<T>;
 export declare class ParticleSystem {
     private readonly gl;
     private readonly glState;
@@ -25,6 +29,10 @@ export declare class ParticleSystem {
     private readonly velocityBuffers;
     private readonly targetBuffers;
     private readonly vaos;
+    private readonly edgeUniforms;
+    private readonly updateUniforms;
+    private readonly particleUniforms;
+    private readonly particleColor;
     private currentIndex;
     private time;
     private readonly noiseSeed;
@@ -34,7 +42,9 @@ export declare class ParticleSystem {
     render(): void;
     dispose(): void;
     private configureEdgeFramebuffer;
+    private configureStaticUniforms;
     private configureEdgeVao;
     private createParticleVao;
     private bindParticleAttribute;
 }
+export {};

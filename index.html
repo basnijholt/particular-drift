@@ -3,12 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Live examples for Particular Drift, a WebGL2 image particle drift renderer."
+    />
     <link rel="icon" href="data:," />
-    <title>Particular Drift Demo</title>
+    <title>Particular Drift Examples</title>
   </head>
   <body>
-    <canvas id="drift-canvas" aria-label="Particular Drift animation"></canvas>
-    <div id="status" role="status"></div>
+    <main class="example-shell">
+      <canvas id="drift-canvas" aria-label="Particular Drift particle example"></canvas>
+
+      <section class="hud" aria-label="Particular Drift examples">
+        <div class="title-block">
+          <p class="eyebrow">WebGL2 particle renderer</p>
+          <h1>Particular Drift</h1>
+        </div>
+
+        <div class="preset-bar" role="group" aria-label="Example presets">
+          <button class="preset-button" type="button" data-preset="ribbon">Ribbon</button>
+          <button class="preset-button" type="button" data-preset="halo">Halo</button>
+          <button class="preset-button" type="button" data-preset="signal">Signal</button>
+        </div>
+
+        <dl class="stats" aria-label="Current example settings">
+          <div>
+            <dt>Mode</dt>
+            <dd id="mode-value">Repel</dd>
+          </div>
+          <div>
+            <dt>Particles</dt>
+            <dd id="count-value">90k</dd>
+          </div>
+          <div>
+            <dt>Image fit</dt>
+            <dd id="fit-value">Contain</dd>
+          </div>
+        </dl>
+
+        <pre class="snippet" aria-label="Usage snippet"><code id="snippet-code"></code></pre>
+      </section>
+
+      <div id="status" role="status" aria-live="polite"></div>
+    </main>
+
     <script type="module" src="/demo/main.ts"></script>
   </body>
 </html>

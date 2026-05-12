@@ -102,6 +102,23 @@ bun run typecheck
 bun run build
 ```
 
+## Examples Site
+
+The examples site is built from `index.html` and `demo/main.ts`:
+
+```bash
+bun run build:pages
+bun run preview:pages
+```
+
+GitHub Pages deploys the examples from the `Pages` workflow on `main`. In the repository settings, set Pages source to **GitHub Actions**.
+
+Once enabled, the examples are available at:
+
+```text
+https://basnijholt.github.io/particular-drift/
+```
+
 ## Publishing
 
 CI publishes to npm from GitHub Actions when a GitHub Release is published, or when the `Publish` workflow is run manually.

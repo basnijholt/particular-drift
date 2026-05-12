@@ -7,27 +7,36 @@ const reactBuildPlugins = react().map((plugin) => ({
   apply: 'build' as const,
 }));
 
-export default defineConfig({
-  plugins: [
-    ...reactBuildPlugins,
-    dts({
-      entryRoot: 'src',
-      exclude: ['demo/**', 'src/**/*.test.ts', 'src/**/*.test.tsx', 'vite.config.ts'],
-    }),
-  ],
-  build: {
-    lib: {
-      entry: {
-        'particular-drift': new URL('src/index.ts', import.meta.url).pathname,
-        react: new URL('src/react.tsx', import.meta.url).pathname,
-      },
-      formats: ['es'],
+export default defineConfig(({ mode }) => {
+  const isPagesBuild = mode === 'pages';
+
+  return {
+    base: isPagesBuild ? '/particular-drift/' : '/',
+    plugins: isPagesBuild
+      ? []
+      : [
+          ...reactBuildPlugins,
+          dts({
+            entryRoot: 'src',
+            exclude: ['demo/**', 'src/**/*.test.ts', 'src/**/*.test.tsx', 'vite.config.ts'],
+          }),
+        ],
+    build: isPagesBuild
+      ? {}
+      : {
+          lib: {
+            entry: {
+              'particular-drift': new URL('src/index.ts', import.meta.url).pathname,
+              react: new URL('src/react.tsx', import.meta.url).pathname,
+            },
+            formats: ['es'],
+          },
+          rollupOptions: {
+            external: ['react', 'react/jsx-runtime'],
+          },
+        },
+    test: {
+      environment: 'node',
     },
-    rollupOptions: {
-      external: ['react', 'react/jsx-runtime'],
-    },
-  },
-  test: {
-    environment: 'node',
-  },
+  };
 });

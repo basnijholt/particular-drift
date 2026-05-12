@@ -39,6 +39,8 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --open",
     "build": "vite build",
+    "build:pages": "vite build --mode pages --outDir pages-dist",
+    "preview:pages": "vite preview --outDir pages-dist --base /particular-drift/",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "prepack": "bun run build"

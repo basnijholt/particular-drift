@@ -25,6 +25,7 @@ const updateUniformNames = [
   'particleSpeed',
   'attractionStrength',
   'searchRadius',
+  'edgeSearchSteps',
   'time',
   'noiseSeed',
   'flowFieldScale',
@@ -257,6 +258,7 @@ export class ParticleSystem {
     gl.uniform1f(this.updateUniforms.particleSpeed, this.options.particleSpeed);
     gl.uniform1f(this.updateUniforms.attractionStrength, this.options.attractionStrength);
     gl.uniform1f(this.updateUniforms.searchRadius, this.options.searchRadius);
+    gl.uniform1i(this.updateUniforms.edgeSearchSteps, this.options.edgeSearchSteps);
     gl.uniform1f(this.updateUniforms.noiseSeed, this.noiseSeed);
     gl.uniform1f(this.updateUniforms.flowFieldScale, this.options.flowFieldScale);
     gl.uniform1i(this.updateUniforms.use3DNoise, this.options.noiseType === '3D' ? 1 : 0);

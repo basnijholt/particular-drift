@@ -8,6 +8,7 @@ export {
 } from './config';
 export type {
   CursorMode,
+  EdgeSearchSteps,
   ImageFit,
   NoiseType,
   ParticularDriftOptions,

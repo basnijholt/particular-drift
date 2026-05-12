@@ -1,6 +1,6 @@
-var I = Object.defineProperty;
-var B = (t, e, r) => e in t ? I(t, e, { enumerable: !0, configurable: !0, writable: !0, value: r }) : t[e] = r;
-var s = (t, e, r) => B(t, typeof e != "symbol" ? e + "" : e, r);
+var D = Object.defineProperty;
+var I = (t, e, r) => e in t ? D(t, e, { enumerable: !0, configurable: !0, writable: !0, value: r }) : t[e] = r;
+var s = (t, e, r) => I(t, typeof e != "symbol" ? e + "" : e, r);
 const C = {
   imageFit: "contain",
   particleCount: 12e4,
@@ -9,6 +9,7 @@ const C = {
   particleOpacity: 0.22,
   particleSize: 0.85,
   edgeThreshold: 0.4,
+  edgeSearchSteps: 2,
   flowFieldScale: 4,
   searchRadius: 0.02,
   noiseType: "2D",
@@ -22,10 +23,10 @@ const C = {
   particleColor: "#dda290",
   autoStart: !0,
   maxDevicePixelRatio: 2
-}, _ = (t = {}) => ({
+}, B = (t = {}) => ({
   ...C,
   ...t
-}), D = (t) => {
+}), _ = (t) => {
   const e = t.trim().replace(/^#/, ""), r = e.length === 3 ? e.split("").map((n) => `${n}${n}`).join("") : e;
   if (!/^[0-9a-f]{6}$/i.test(r))
     throw new Error(`Invalid hex color: ${t}`);
@@ -58,7 +59,7 @@ const C = {
     y: Math.min(1, Math.max(0, a)),
     active: n >= 0 && n <= 1 && i >= 0 && i <= 1
   };
-}, O = ({
+}, M = ({
   fit: t,
   canvasWidth: e,
   canvasHeight: r,
@@ -85,7 +86,7 @@ const C = {
     offsetY: (1 - c) / 2
   };
 };
-class L {
+class O {
   constructor(e) {
     s(this, "currentProgram", null);
     s(this, "currentVao", null);
@@ -127,7 +128,7 @@ const Z = () => {
     throw t.deleteShader(n), new Error(i);
   }
   return n;
-}, y = (t, e, r, n) => {
+}, b = (t, e, r, n) => {
   const i = P(t, t.VERTEX_SHADER, e), a = P(t, t.FRAGMENT_SHADER, r), o = t.createProgram();
   if (!o)
     throw new Error("Unable to create WebGL program.");
@@ -150,21 +151,22 @@ const Z = () => {
   type: o = t.UNSIGNED_BYTE,
   minFilter: c = t.LINEAR,
   magFilter: l = t.LINEAR,
-  wrap: d = t.CLAMP_TO_EDGE
+  wrap: u = t.CLAMP_TO_EDGE
 }) => {
   const f = t.createTexture();
   if (!f)
     throw new Error("Unable to create WebGL texture.");
-  return t.bindTexture(t.TEXTURE_2D, f), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_MIN_FILTER, c), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_MAG_FILTER, l), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_WRAP_S, d), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_WRAP_T, d), e && r ? t.texImage2D(t.TEXTURE_2D, 0, i, e, r, 0, a, o, null) : n && t.texImage2D(t.TEXTURE_2D, 0, i, a, o, n), t.bindTexture(t.TEXTURE_2D, null), f;
+  return t.bindTexture(t.TEXTURE_2D, f), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_MIN_FILTER, c), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_MAG_FILTER, l), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_WRAP_S, u), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_WRAP_T, u), e && r ? t.texImage2D(t.TEXTURE_2D, 0, i, e, r, 0, a, o, null) : n && t.texImage2D(t.TEXTURE_2D, 0, i, a, o, n), t.bindTexture(t.TEXTURE_2D, null), f;
 }, U = (t) => new Promise((e, r) => {
   const n = new Image();
   n.crossOrigin = "anonymous", n.onload = () => e(n), n.onerror = () => r(new Error(`Failed to load image: ${t}`)), n.src = t;
-}), V = ["uResolution", "uImageScale", "uImageOffset", "threshold", "uImage"], M = [
+}), L = ["uResolution", "uImageScale", "uImageOffset", "threshold", "uImage"], V = [
   "deltaTime",
   "resolution",
   "particleSpeed",
   "attractionStrength",
   "searchRadius",
+  "edgeSearchSteps",
   "time",
   "noiseSeed",
   "flowFieldScale",
@@ -177,7 +179,7 @@ const Z = () => {
   "cursorReturnStrength",
   "cursorReturnDamping",
   "edgeTexture"
-], k = ["uParticleColor", "uParticleOpacity", "particleSize"], E = (t, e, r) => Object.fromEntries(r.map((n) => [n, t.getUniformLocation(e, n)])), X = (t) => "displayWidth" in t && "displayHeight" in t ? { width: t.displayWidth, height: t.displayHeight } : "videoWidth" in t && "videoHeight" in t ? { width: t.videoWidth, height: t.videoHeight } : { width: t.width, height: t.height };
+], X = ["uParticleColor", "uParticleOpacity", "particleSize"], y = (t, e, r) => Object.fromEntries(r.map((n) => [n, t.getUniformLocation(e, n)])), k = (t) => "displayWidth" in t && "displayHeight" in t ? { width: t.displayWidth, height: t.displayHeight } : "videoWidth" in t && "videoHeight" in t ? { width: t.videoWidth, height: t.videoHeight } : { width: t.width, height: t.height };
 class G {
   constructor(e, r, n, i) {
     s(this, "transformFeedback");
@@ -200,7 +202,7 @@ class G {
     const a = e.createTransformFeedback(), o = e.createFramebuffer(), c = e.createVertexArray();
     if (!a || !o || !c)
       throw new Error("Unable to initialize WebGL particle resources.");
-    this.transformFeedback = a, this.edgeFramebuffer = o, this.edgeVao = c, this.edgeUniforms = E(e, n.edge, V), this.updateUniforms = E(e, n.update, M), this.particleUniforms = E(e, n.particle, k), this.particleColor = D(i.particleColor), this.edgeTexture = A(e, {
+    this.transformFeedback = a, this.edgeFramebuffer = o, this.edgeVao = c, this.edgeUniforms = y(e, n.edge, L), this.updateUniforms = y(e, n.update, V), this.particleUniforms = y(e, n.particle, X), this.particleColor = _(i.particleColor), this.edgeTexture = A(e, {
       width: e.canvas.width,
       height: e.canvas.height
     }), this.quadBuffer = g(
@@ -208,15 +210,15 @@ class G {
       new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
       e.STATIC_DRAW
     );
-    const l = new Float32Array(i.particleCount * 2), d = new Float32Array(i.particleCount * 2), f = new Float32Array(i.particleCount * 2);
+    const l = new Float32Array(i.particleCount * 2), u = new Float32Array(i.particleCount * 2), f = new Float32Array(i.particleCount * 2);
     for (let p = 0; p < i.particleCount; p += 1) {
       const h = p * 2;
-      l[h] = Math.random(), l[h + 1] = Math.random(), d[h] = (Math.random() - 0.5) * 1e-3, d[h + 1] = (Math.random() - 0.5) * 1e-3, f[h] = -1, f[h + 1] = -1;
+      l[h] = Math.random(), l[h + 1] = Math.random(), u[h] = (Math.random() - 0.5) * 1e-3, u[h + 1] = (Math.random() - 0.5) * 1e-3, f[h] = -1, f[h + 1] = -1;
     }
-    this.positionBuffers = [g(e, l), g(e, l)], this.velocityBuffers = [g(e, d), g(e, d)], this.targetBuffers = [g(e, f), g(e, f)], this.vaos = [this.createParticleVao(0), this.createParticleVao(1)], this.configureEdgeVao(), this.configureEdgeFramebuffer(), this.configureStaticUniforms();
+    this.positionBuffers = [g(e, l), g(e, l)], this.velocityBuffers = [g(e, u), g(e, u)], this.targetBuffers = [g(e, f), g(e, f)], this.vaos = [this.createParticleVao(0), this.createParticleVao(1)], this.configureEdgeVao(), this.configureEdgeFramebuffer(), this.configureStaticUniforms();
   }
   processImage(e) {
-    const r = A(this.gl, { data: e }), n = X(e), i = O({
+    const r = A(this.gl, { data: e }), n = k(e), i = M({
       fit: this.options.imageFit,
       canvasWidth: this.gl.canvas.width,
       canvasHeight: this.gl.canvas.height,
@@ -251,7 +253,7 @@ class G {
   }
   configureStaticUniforms() {
     const e = this.gl, [r, n, i] = this.particleColor;
-    this.glState.useProgram(this.programs.update), e.uniform1f(this.updateUniforms.particleSpeed, this.options.particleSpeed), e.uniform1f(this.updateUniforms.attractionStrength, this.options.attractionStrength), e.uniform1f(this.updateUniforms.searchRadius, this.options.searchRadius), e.uniform1f(this.updateUniforms.noiseSeed, this.noiseSeed), e.uniform1f(this.updateUniforms.flowFieldScale, this.options.flowFieldScale), e.uniform1i(this.updateUniforms.use3DNoise, this.options.noiseType === "3D" ? 1 : 0), e.uniform1f(this.updateUniforms.cursorRadius, this.options.cursorRadius), e.uniform1f(this.updateUniforms.cursorStrength, this.options.cursorStrength), e.uniform1f(this.updateUniforms.cursorDirection, this.options.cursorMode === "attract" ? 1 : -1), e.uniform1f(this.updateUniforms.cursorReturnStrength, this.options.cursorReturnStrength), e.uniform1f(this.updateUniforms.cursorReturnDamping, this.options.cursorReturnDamping), e.uniform1i(this.updateUniforms.edgeTexture, 0), this.glState.useProgram(this.programs.particle), e.uniform3f(this.particleUniforms.uParticleColor, r, n, i), e.uniform1f(this.particleUniforms.uParticleOpacity, this.options.particleOpacity), e.uniform1f(this.particleUniforms.particleSize, this.options.particleSize);
+    this.glState.useProgram(this.programs.update), e.uniform1f(this.updateUniforms.particleSpeed, this.options.particleSpeed), e.uniform1f(this.updateUniforms.attractionStrength, this.options.attractionStrength), e.uniform1f(this.updateUniforms.searchRadius, this.options.searchRadius), e.uniform1i(this.updateUniforms.edgeSearchSteps, this.options.edgeSearchSteps), e.uniform1f(this.updateUniforms.noiseSeed, this.noiseSeed), e.uniform1f(this.updateUniforms.flowFieldScale, this.options.flowFieldScale), e.uniform1i(this.updateUniforms.use3DNoise, this.options.noiseType === "3D" ? 1 : 0), e.uniform1f(this.updateUniforms.cursorRadius, this.options.cursorRadius), e.uniform1f(this.updateUniforms.cursorStrength, this.options.cursorStrength), e.uniform1f(this.updateUniforms.cursorDirection, this.options.cursorMode === "attract" ? 1 : -1), e.uniform1f(this.updateUniforms.cursorReturnStrength, this.options.cursorReturnStrength), e.uniform1f(this.updateUniforms.cursorReturnDamping, this.options.cursorReturnDamping), e.uniform1i(this.updateUniforms.edgeTexture, 0), this.glState.useProgram(this.programs.particle), e.uniform3f(this.particleUniforms.uParticleColor, r, n, i), e.uniform1f(this.particleUniforms.uParticleOpacity, this.options.particleOpacity), e.uniform1f(this.particleUniforms.particleSize, this.options.particleSize);
   }
   configureEdgeVao() {
     this.glState.bindVao(this.edgeVao), this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadBuffer);
@@ -310,14 +312,14 @@ void main() {
     
     fragColor = vec4(edge, edge, edge, 1.0);
 }
-`, W = `#version 300 es
+`, H = `#version 300 es
 in vec2 aPosition;
 out vec2 vTexCoord;
 
 void main() {
     vTexCoord = vec2(aPosition.x * 0.5 + 0.5, (aPosition.y * 0.5 + 0.5));
     gl_Position = vec4(aPosition, 0.0, 1.0);
-}`, H = `#version 300 es
+}`, W = `#version 300 es
 precision highp float;
 
 in vec2 vPosition;
@@ -371,6 +373,7 @@ uniform float deltaTime;            // Time since last frame in seconds
 uniform vec2 resolution;            // Canvas resolution
 uniform float particleSpeed;        // Base speed multiplier for particles
 uniform float searchRadius;         // Radius for searching nearby edges
+uniform int edgeSearchSteps;        // Number of texels to search in each grid direction
 uniform float attractionStrength;   // Strength of edge attraction
 uniform float time;                 // Global time for animation
 uniform float noiseSeed;            // Random seed for Perlin noise
@@ -383,6 +386,8 @@ uniform float cursorStrength;       // Cursor force multiplier
 uniform float cursorDirection;      // -1 repels from cursor, 1 attracts toward cursor
 uniform float cursorReturnStrength; // Strength of return force toward stored target
 uniform float cursorReturnDamping;  // Velocity damping while particles settle back
+
+const int MAX_EDGE_SEARCH_STEPS = 3;
 
 /**
  * Generate a pseudo-random number in range [0,1] based on a 2D coordinate
@@ -581,10 +586,14 @@ void main() {
         vec2 closestEdge = pos;
         bool foundEdge = false;
         
-        // Grid search for nearby strong edges
-        for (float y = -3.0; y <= 3.0; y += 1.0) {
-            for (float x = -3.0; x <= 3.0; x += 1.0) {
-                vec2 offset = vec2(x, y) / resolution;
+        // Grid search for nearby strong edges. The loop remains bounded for predictable shader compilation,
+        // while edgeSearchSteps controls how many texture samples are taken at runtime.
+        int boundedEdgeSearchSteps = clamp(edgeSearchSteps, 1, MAX_EDGE_SEARCH_STEPS);
+        for (int y = -MAX_EDGE_SEARCH_STEPS; y <= MAX_EDGE_SEARCH_STEPS; y += 1) {
+            for (int x = -MAX_EDGE_SEARCH_STEPS; x <= MAX_EDGE_SEARCH_STEPS; x += 1) {
+                if (abs(x) > boundedEdgeSearchSteps || abs(y) > boundedEdgeSearchSteps) continue;
+
+                vec2 offset = vec2(float(x), float(y)) / resolution;
                 vec2 samplePos = pos + offset;
                 
                 // Skip if sample position is outside texture bounds
@@ -677,10 +686,10 @@ void main() {
 `, v = {
   edge: {
     fragment: Y,
-    vertex: W
+    vertex: H
   },
   particle: {
-    fragment: H,
+    fragment: W,
     vertex: q
   },
   update: {
@@ -688,7 +697,7 @@ void main() {
     vertex: j
   }
 }, Q = async (t, e = {}) => {
-  const r = _(e), n = t.getContext("webgl2", {
+  const r = B(e), n = t.getContext("webgl2", {
     alpha: !1,
     antialias: !1,
     depth: !1,
@@ -696,63 +705,63 @@ void main() {
   });
   if (!n)
     throw new Error("WebGL2 is required to run Particular Drift.");
-  const i = new L(n), a = {
-    edge: y(n, v.edge.vertex, v.edge.fragment),
-    particle: y(n, v.particle.vertex, v.particle.fragment),
-    update: y(n, v.update.vertex, v.update.fragment, [
+  const i = new O(n), a = {
+    edge: b(n, v.edge.vertex, v.edge.fragment),
+    particle: b(n, v.particle.vertex, v.particle.fragment),
+    update: b(n, v.update.vertex, v.update.fragment, [
       "vPosition",
       "vVelocity",
       "vTarget"
     ])
   };
-  let o, c, l = 0, d = !1;
+  let o, c, l = 0, u = !1;
   const f = { x: 0.5, y: 0.5, active: !1 }, p = () => {
-    const u = t.getBoundingClientRect(), { width: m, height: w } = z({
-      cssWidth: u.width || t.clientWidth || 1,
-      cssHeight: u.height || t.clientHeight || 1,
+    const d = t.getBoundingClientRect(), { width: m, height: w } = z({
+      cssWidth: d.width || t.clientWidth || 1,
+      cssHeight: d.height || t.clientHeight || 1,
       maxDevicePixelRatio: r.maxDevicePixelRatio
     });
     (t.width !== m || t.height !== w) && (t.width = m, t.height = w), i.setViewport(t.width, t.height);
   }, h = () => {
-    i.setClearColor(D(r.backgroundColor)), i.clear();
-  }, R = (u) => {
+    i.setClearColor(_(r.backgroundColor)), i.clear();
+  }, R = (d) => {
     const m = N({
-      clientX: u.clientX,
-      clientY: u.clientY,
+      clientX: d.clientX,
+      clientY: d.clientY,
       rect: t.getBoundingClientRect()
     });
     f.x = m.x, f.y = m.y, f.active = m.active;
   }, x = () => {
     f.active = !1;
-  }, b = () => {
+  }, S = () => {
     c !== void 0 && (cancelAnimationFrame(c), c = void 0), l = 0;
-  }, F = (u) => {
-    if (!o || d) return;
-    const m = l ? u - l : 0;
-    l = u, h(), o.update(m, f), o.render(), c = requestAnimationFrame(F);
-  }, T = () => {
-    c === void 0 && o && !d && (c = requestAnimationFrame(F));
-  }, S = async (u) => {
-    b(), o == null || o.dispose(), p(), h(), o = new G(n, i, a, r), o.processImage(u), r.autoStart && T();
+  }, T = (d) => {
+    if (!o || u) return;
+    const m = l ? d - l : 0;
+    l = d, h(), o.update(m, f), o.render(), c = requestAnimationFrame(T);
+  }, F = () => {
+    c === void 0 && o && !u && (c = requestAnimationFrame(T));
+  }, E = async (d) => {
+    S(), o == null || o.dispose(), p(), h(), o = new G(n, i, a, r), o.processImage(d), r.autoStart && F();
   };
-  return r.imageUrl ? await S(await U(r.imageUrl)) : (p(), h()), r.interactive && (t.addEventListener("pointermove", R, { passive: !0 }), t.addEventListener("pointerleave", x), t.addEventListener("pointercancel", x)), {
-    loadImage: S,
-    loadImageUrl: async (u) => S(await U(u)),
+  return r.imageUrl ? await E(await U(r.imageUrl)) : (p(), h()), r.interactive && (t.addEventListener("pointermove", R, { passive: !0 }), t.addEventListener("pointerleave", x), t.addEventListener("pointercancel", x)), {
+    loadImage: E,
+    loadImageUrl: async (d) => E(await U(d)),
     resize: p,
-    start: T,
-    stop: b,
+    start: F,
+    stop: S,
     destroy: () => {
-      d = !0, b(), t.removeEventListener("pointermove", R), t.removeEventListener("pointerleave", x), t.removeEventListener("pointercancel", x), o == null || o.dispose(), Object.values(a).forEach((u) => n.deleteProgram(u));
+      u = !0, S(), t.removeEventListener("pointermove", R), t.removeEventListener("pointerleave", x), t.removeEventListener("pointercancel", x), o == null || o.dispose(), Object.values(a).forEach((d) => n.deleteProgram(d));
     }
   };
 };
 export {
   C as DEFAULT_PARTICULAR_DRIFT_OPTIONS,
   Q as createParticularDrift,
-  _ as getResolvedOptions,
-  D as hexToRgbUnit,
+  B as getResolvedOptions,
+  _ as hexToRgbUnit,
   Z as isWebGL2Supported,
   z as resolveCanvasSize,
   N as resolveCursorPosition,
-  O as resolveImageFit
+  M as resolveImageFit
 };

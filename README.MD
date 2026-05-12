@@ -103,7 +103,7 @@ bun run build
 
 ## Publishing
 
-CI publishes to npm from GitHub Actions when a `v*.*.*` tag is pushed, or when the `Publish` workflow is run manually.
+CI publishes to npm from GitHub Actions when a GitHub Release is published, or when the `Publish` workflow is run manually.
 
 Configure npm Trusted Publishing for this package with:
 
@@ -112,11 +112,10 @@ Configure npm Trusted Publishing for this package with:
 - Repository: `particular-drift`
 - Workflow filename: `publish.yml`
 
-Then release with:
+Then release with a semver tag. The workflow strips the leading `v`, updates `package.json` in CI, and publishes that version to npm:
 
 ```bash
-npm version patch
-git push --follow-tags
+gh release create v0.1.1 --generate-notes
 ```
 
 ## Browser Requirements

@@ -14,9 +14,12 @@ describe('package scripts', () => {
   });
 
   it('publishes releases through npm trusted publishing', () => {
-    expect(publishWorkflow).toContain("tags:");
+    expect(publishWorkflow).toContain("release:");
+    expect(publishWorkflow).toContain("types: [published]");
     expect(publishWorkflow).toContain("id-token: write");
     expect(publishWorkflow).toContain("node-version: '24'");
+    expect(publishWorkflow).toContain('github.event.release.tag_name');
+    expect(publishWorkflow).toContain('npm version "$VERSION" --no-git-tag-version --allow-same-version');
     expect(publishWorkflow).toContain('npm publish');
     expect(publishWorkflow).not.toContain('NPM_TOKEN');
   });

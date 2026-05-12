@@ -564,9 +564,8 @@ void main() {
         
         // Determine if particle should detach from edge
         if (stickiness < 0.3 || edgeStrength < 0.3 || rand(pos * 1.0 + time * 1.0) > (stickiness*0.80)) {
-            // Particle detaches: boost flow influence and reset target
+            // Particle detaches: boost flow influence while keeping its last valid return target
             vel = mix(flow * 1.2, vel * 0.9, stickiness);
-            tgt = vec2(-1.0);  // No target when detached
         } else {
             // Increase dampening range for stronger velocity reduction
             float dampening = mix(0.3, 0.97, edgeStrength);
@@ -619,7 +618,6 @@ void main() {
             tgt = closestEdge;
         } else {
             vel = flow;
-            tgt = vec2(-1.0);
         }
         
         // Maintain partial velocity from previous frame for smoother motion

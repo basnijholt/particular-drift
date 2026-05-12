@@ -1,113 +1,100 @@
 # Particular Drift
 
-Turn images into flowing particle animations! This javascript / WebGL tool creates particle animations from any image, with particles that dynamically respond to edge detection and flow fields.
+Reusable WebGL2 particle drift renderer for turning a fixed image into a flowing particle animation.
 
-<img src="/assets/example.gif">
-<img src="/assets/onEdge.png">
+This fork is packaged as an embeddable library. It intentionally removes the original demo UI, upload controls, and MP4 export stack so applications can hardcode their own image and own the surrounding interface.
 
-## Live Demo
+## Install
 
-Try it out at: [**https://particular-drift.netlify.app**](https://particular-drift.netlify.app)
+```bash
+bun add github:basnijholt/particular-drift
+```
 
-## Features
+After publishing to npm, install with:
 
-- Upload any image and convert it to a dynamic particle animation
-- Real-time parameter controls for customizing the animation
-- Edge detection with dynamic particle attraction
-- Perlin noise-based flow fields for organic movement
-- Export animations as images or videos
-- Fully client-side processing - no server uploads required
-- MIT licensed and free for both personal and commercial use
+```bash
+bun add @basnijholt/particular-drift
+```
 
-## Technical Details
+## Vanilla Usage
 
-The animation combines several techniques:
+```ts
+import { createParticularDrift } from '@basnijholt/particular-drift';
 
-- **Edge Detection** using Sobel filters
-- **Perlin / Simplex Noise** for generating organic flow fields (2D or 3D)
-- **WebGL** for high-performance GPU-accelerated rendering
-- **GLSL Shaders** for particle physics and rendering
-- **Transform Feedback** for efficient particle system updates
+const canvas = document.querySelector<HTMLCanvasElement>('#background');
 
-## Parameters
+if (canvas) {
+  const drift = await createParticularDrift(canvas, {
+    imageUrl: '/res/branding/mindroom-logo.png',
+    backgroundColor: '#0f0d2e',
+    particleColor: '#dda290',
+    particleCount: 120000,
+  });
 
-Users can control various aspects of the animation:
+  window.addEventListener('resize', drift.resize);
+}
+```
 
-- **Particle Speed**: Controls how fast particles move through the scene
-- **Attraction Strength**: Determines how strongly particles are drawn to detected edges
-- **Particle Opacity**: Sets the transparency of individual particles
-- **Particle Size**: Adjusts the size of each particle
-- **Particle Count**: Sets the total number of particles in the system
-- **Edge Threshold**: Controls the sensitivity of edge detection
-- **Flow Field Scale**: Complexity of the flow field 
-- **Noise Type**: Select 2D perlin noise or 3D simplex noise for the flow field movement
-- **Color Palette**: Choose from preset color combinations or customize your own
-- **Background Color**: Set the background color
-- **Particle Color**: Set the color of the particles
+## React Usage
 
-## Installation
+```tsx
+import { ParticularDriftCanvas } from '@basnijholt/particular-drift/react';
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/collidingScopes/particular-drift.git
-   ```
+export function AuthBackground() {
+  return (
+    <ParticularDriftCanvas
+      imageUrl="/res/branding/mindroom-logo.png"
+      options={{
+        backgroundColor: '#0f0d2e',
+        particleColor: '#dda290',
+        particleCount: 120000,
+      }}
+    />
+  );
+}
+```
 
-2. No build process is required - this is a pure frontend application. Simply serve the files using any web server. For example, using Python:
-   ```bash
-   python -m http.server
-   ```
-   Or using Node.js and a package like `serve`:
-   ```bash
-   npx serve
-   ```
+## API
 
-3. Open your browser and navigate to the local server address (typically `http://localhost:8000`)
+`createParticularDrift(canvas, options)` returns:
+
+- `loadImage(image)` to load an existing `TexImageSource`.
+- `loadImageUrl(url)` to load an image URL.
+- `resize()` to resize the backing canvas to its rendered CSS size.
+- `start()` and `stop()` to control animation.
+- `destroy()` to cancel animation and release WebGL resources.
+
+Main options:
+
+- `imageUrl`
+- `particleCount`
+- `particleSpeed`
+- `attractionStrength`
+- `particleOpacity`
+- `particleSize`
+- `edgeThreshold`
+- `flowFieldScale`
+- `searchRadius`
+- `noiseType`: `'2D'` or `'3D'`
+- `backgroundColor`
+- `particleColor`
+- `autoStart`
+- `maxDevicePixelRatio`
+
+## Development
+
+```bash
+bun install
+bun test
+bun run typecheck
+bun run build
+```
 
 ## Browser Requirements
 
-- WebGL2 support
-- Required WebGL extensions:
-  - EXT_color_buffer_float
-  - OES_texture_float_linear
-
-## Performance Considerations
-
-The animation is computationally intensive due to the large number of particles and real-time processing. Performance may vary based on:
-- Your device's GPU capabilities
-- Screen resolution
-- Number of particles
-- Size of the input image
-
-If you experience lag:
-- Reduce the particle count
-- Close unnecessary browser tabs
-- Ensure your device is not in power-saving mode
-- Try a smaller input image
-
-## Video Export
-
-The tool uses the WebCodecs API and mp4-muxer for video export. If video export doesn't work in your browser:
-- Try using Chrome or Edge, which have better support for the WebCodecs API
-- Consider using an external screen recording tool like OBS Studio
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+- WebGL2
+- Canvas image loading must satisfy browser CORS rules when using remote image URLs.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE.txt) file for details.
-
-## Other Projects
-
-Check out my other free/open source projects:
-- [Video-to-ASCII](https://collidingScopes.github.io/ascii): Turn videos into ASCII pixel art
-- [Shape Shimmer](https://collidingScopes.github.io/shimmer): Turn photos into funky wave animations
-- [Colliding Scopes](https://collidingScopes.github.io): Turn photos into kaleidoscope animations
-- [Force-Field Animation](https://collidingScopes.github.io/forcefield): Turn photos into particle animations
-- [Manual Brick Breaker](https://manual-brick-breaker.netlify.app): Play brick breaker by waving around your hands
-
-## Donations
-If you found this tool useful, feel free to buy me a coffee. This would be much appreciated during late-night coding sessions!
-
-<a href="https://www.buymeacoffee.com/stereoDrift" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png" alt="Buy Me A Coffee"></a>
+MIT. See [LICENSE.txt](LICENSE.txt).

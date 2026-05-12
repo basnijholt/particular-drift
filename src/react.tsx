@@ -11,6 +11,7 @@ export type ParticularDriftCanvasProps = Omit<
   'children'
 > & {
   imageUrl: string;
+  onRendererError?: (error: unknown) => void;
   options?: ParticularDriftUserOptions;
 };
 
@@ -22,6 +23,7 @@ const fullSizeCanvasStyle: CSSProperties = {
 
 export const ParticularDriftCanvas = ({
   imageUrl,
+  onRendererError,
   options,
   style,
   ...props
@@ -35,20 +37,26 @@ export const ParticularDriftCanvas = ({
 
     let disposed = false;
 
-    createParticularDrift(canvas, { ...options, imageUrl }).then((instance) => {
-      if (disposed) {
-        instance.destroy();
-        return;
-      }
-      instanceRef.current = instance;
-    });
+    createParticularDrift(canvas, { ...options, imageUrl })
+      .then((instance) => {
+        if (disposed) {
+          instance.destroy();
+          return;
+        }
+        instanceRef.current = instance;
+      })
+      .catch((error: unknown) => {
+        if (!disposed) {
+          onRendererError?.(error);
+        }
+      });
 
     return () => {
       disposed = true;
       instanceRef.current?.destroy();
       instanceRef.current = undefined;
     };
-  }, [imageUrl, options]);
+  }, [imageUrl, onRendererError, options]);
 
   return (
     <canvas

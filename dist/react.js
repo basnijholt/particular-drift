@@ -1,41 +1,44 @@
-import { jsx as f } from "react/jsx-runtime";
-import { useRef as i, useEffect as l } from "react";
-import { createParticularDrift as d } from "./particular-drift.js";
-const v = {
+import { jsx as v } from "react/jsx-runtime";
+import { useRef as l, useEffect as h } from "react";
+import { createParticularDrift as o } from "./particular-drift.js";
+const d = {
   display: "block",
   height: "100%",
   width: "100%"
-}, y = ({
-  imageUrl: e,
-  options: n,
-  style: o,
-  ...u
+}, x = ({
+  imageUrl: i,
+  onRendererError: a,
+  options: f,
+  style: n,
+  ...r
 }) => {
-  const s = i(null), t = i();
-  return l(() => {
-    const a = s.current;
-    if (!a) return;
-    let c = !1;
-    return d(a, { ...n, imageUrl: e }).then((r) => {
-      if (c) {
-        r.destroy();
+  const u = l(null), c = l();
+  return h(() => {
+    const e = u.current;
+    if (!e) return;
+    let s = !1;
+    return o(e, { ...f, imageUrl: i }).then((t) => {
+      if (s) {
+        t.destroy();
         return;
       }
-      t.current = r;
+      c.current = t;
+    }).catch((t) => {
+      s || a == null || a(t);
     }), () => {
-      var r;
-      c = !0, (r = t.current) == null || r.destroy(), t.current = void 0;
+      var t;
+      s = !0, (t = c.current) == null || t.destroy(), c.current = void 0;
     };
-  }, [e, n]), /* @__PURE__ */ f(
+  }, [i, a, f]), /* @__PURE__ */ v(
     "canvas",
     {
       "aria-hidden": "true",
-      ...u,
-      ref: s,
-      style: { ...v, ...o }
+      ...r,
+      ref: u,
+      style: { ...d, ...n }
     }
   );
 };
 export {
-  y as ParticularDriftCanvas
+  x as ParticularDriftCanvas
 };

@@ -34,6 +34,7 @@ describe('package scripts', () => {
     expect(pagesWorkflow).toContain('id-token: write');
     expect(pagesWorkflow).toContain('bun run build:pages');
     expect(pagesWorkflow).toContain('actions/configure-pages@v5');
+    expect(pagesWorkflow).toContain('enablement: true');
     expect(pagesWorkflow).toContain('actions/upload-pages-artifact@v3');
     expect(pagesWorkflow).toContain('actions/deploy-pages@v4');
   });

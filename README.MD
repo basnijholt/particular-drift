@@ -101,6 +101,24 @@ bun run typecheck
 bun run build
 ```
 
+## Publishing
+
+CI publishes to npm from GitHub Actions when a `v*.*.*` tag is pushed, or when the `Publish` workflow is run manually.
+
+Configure npm Trusted Publishing for this package with:
+
+- Provider: GitHub Actions
+- Owner: `basnijholt`
+- Repository: `particular-drift`
+- Workflow filename: `publish.yml`
+
+Then release with:
+
+```bash
+npm version patch
+git push --follow-tags
+```
+
 ## Browser Requirements
 
 - WebGL2

@@ -2,6 +2,8 @@
 
 Reusable WebGL2 particle drift renderer for turning a fixed image into a flowing particle animation.
 
+**Original project:** [collidingScopes/particular-drift](https://github.com/collidingScopes/particular-drift) by [Colliding Scopes](https://collidingScopes.github.io).
+
 This fork is packaged as an embeddable library. It intentionally removes the original demo UI, upload controls, and MP4 export stack so applications can hardcode their own image and own the surrounding interface.
 
 ## Install
@@ -98,3 +100,14 @@ bun run build
 ## License
 
 MIT. See [LICENSE.txt](LICENSE.txt).
+
+## Original Author
+
+Particular Drift was created by Colliding Scopes. This package is a library-focused fork of that work.
+
+- Original repository: [github.com/collidingScopes/particular-drift](https://github.com/collidingScopes/particular-drift)
+- Original live demo: [collidingScopes.github.io/particular-drift](https://collidingScopes.github.io/particular-drift)
+- Original author site: [collidingScopes.github.io](https://collidingScopes.github.io)
+- Support the original author: [Buy Me a Coffee](https://www.buymeacoffee.com/stereoDrift)
+
+<a href="https://www.buymeacoffee.com/stereoDrift" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png" alt="Buy Me A Coffee"></a>

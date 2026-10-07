@@ -5,6 +5,7 @@ import {
   hexToRgbUnit,
   resolveCanvasSize,
   resolveCursorPosition,
+  isFrameDue,
 } from './config';
 import { GlState } from './gl-state';
 import { ParticleSystem, ParticleSystemPrograms } from './particle-system';
@@ -99,6 +100,10 @@ export const createParticularDrift = async (
 
   const frame = (time: number): void => {
     if (!particleSystem || destroyed) return;
+    if (!isFrameDue(time, lastFrameTime, options.maxFramesPerSecond)) {
+      animationFrame = requestAnimationFrame(frame);
+      return;
+    }
 
     const deltaTime = lastFrameTime ? time - lastFrameTime : 0;
     lastFrameTime = time;

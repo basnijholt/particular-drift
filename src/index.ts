@@ -2,6 +2,7 @@ export {
   DEFAULT_PARTICULAR_DRIFT_OPTIONS,
   getResolvedOptions,
   hexToRgbUnit,
+  isFrameDue,
   resolveCursorPosition,
   resolveCanvasSize,
   resolveImageFit,

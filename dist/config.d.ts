@@ -25,6 +25,7 @@ export type ParticularDriftOptions = {
     particleColor: string;
     autoStart: boolean;
     maxDevicePixelRatio: number;
+    maxFramesPerSecond: number;
 };
 export type ParticularDriftUserOptions = Partial<ParticularDriftOptions>;
 export declare const DEFAULT_PARTICULAR_DRIFT_OPTIONS: ParticularDriftOptions;
@@ -65,3 +66,4 @@ export type ResolvedCursorPosition = {
 };
 export declare const resolveCursorPosition: ({ clientX, clientY, rect, }: ResolveCursorPositionInput) => ResolvedCursorPosition;
 export declare const resolveImageFit: ({ fit, canvasWidth, canvasHeight, imageWidth, imageHeight, }: ResolveImageFitInput) => ResolvedImageFit;
+export declare const isFrameDue: (time: number, lastFrameTime: number, maxFramesPerSecond: number) => boolean;

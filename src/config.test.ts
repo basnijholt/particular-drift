@@ -5,6 +5,7 @@ import {
   getResolvedOptions,
   hexToRgbUnit,
   resolveCursorPosition,
+  isFrameDue,
   resolveCanvasSize,
   resolveImageFit,
 } from './config';
@@ -47,6 +48,28 @@ describe('particular drift config', () => {
         maxDevicePixelRatio: 2,
       })
     ).toEqual({ width: 640, height: 360 });
+  });
+
+  it('renders below CSS resolution when the device pixel ratio cap is below 1', () => {
+    expect(
+      resolveCanvasSize({
+        cssWidth: 320,
+        cssHeight: 180,
+        devicePixelRatio: 1,
+        maxDevicePixelRatio: 0.5,
+      })
+    ).toEqual({ width: 160, height: 90 });
+    // A zoomed-out page still renders at least at CSS resolution without a lower cap.
+    expect(
+      resolveCanvasSize({ cssWidth: 320, cssHeight: 180, devicePixelRatio: 0.8, maxDevicePixelRatio: 2 })
+    ).toEqual({ width: 320, height: 180 });
+  });
+
+  it('skips frames inside a frame-rate cap', () => {
+    expect(isFrameDue(1000, 0, 30)).toBe(true);
+    expect(isFrameDue(1016.7, 1000, 30)).toBe(false);
+    expect(isFrameDue(1033.3, 1000, 30)).toBe(true);
+    expect(isFrameDue(1016.7, 1000, Infinity)).toBe(true);
   });
 
   it('preserves image aspect ratio when containing an image in a wider canvas', () => {

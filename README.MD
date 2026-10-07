@@ -90,7 +90,8 @@ Main options:
 - `backgroundColor`
 - `particleColor`
 - `autoStart`
-- `maxDevicePixelRatio`
+- `maxDevicePixelRatio`: caps the canvas resolution; below 1 renders below CSS resolution, which the browser scales up (cheaper on software WebGL).
+- `maxFramesPerSecond`: caps the frame rate (default `Infinity`); the simulation steps by elapsed time, so motion speed is unchanged.
 
 ## Development
 

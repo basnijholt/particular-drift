@@ -1,5 +1,5 @@
-var D = Object.defineProperty;
-var I = (t, e, r) => e in t ? D(t, e, { enumerable: !0, configurable: !0, writable: !0, value: r }) : t[e] = r;
+var _ = Object.defineProperty;
+var I = (t, e, r) => e in t ? _(t, e, { enumerable: !0, configurable: !0, writable: !0, value: r }) : t[e] = r;
 var s = (t, e, r) => I(t, typeof e != "symbol" ? e + "" : e, r);
 const C = {
   imageFit: "contain",
@@ -22,11 +22,12 @@ const C = {
   backgroundColor: "#0f0d2e",
   particleColor: "#dda290",
   autoStart: !0,
-  maxDevicePixelRatio: 2
+  maxDevicePixelRatio: 2,
+  maxFramesPerSecond: 1 / 0
 }, B = (t = {}) => ({
   ...C,
   ...t
-}), _ = (t) => {
+}), D = (t) => {
   const e = t.trim().replace(/^#/, ""), r = e.length === 3 ? e.split("").map((n) => `${n}${n}`).join("") : e;
   if (!/^[0-9a-f]{6}$/i.test(r))
     throw new Error(`Invalid hex color: ${t}`);
@@ -41,7 +42,7 @@ const C = {
   devicePixelRatio: r = globalThis.devicePixelRatio ?? 1,
   maxDevicePixelRatio: n = C.maxDevicePixelRatio
 }) => {
-  const i = Math.max(1, Math.min(r, n));
+  const i = Math.min(Math.max(1, r), n);
   return {
     width: Math.max(1, Math.floor(t * i)),
     height: Math.max(1, Math.floor(e * i))
@@ -85,8 +86,8 @@ const C = {
     offsetX: 0,
     offsetY: (1 - c) / 2
   };
-};
-class O {
+}, O = (t, e, r) => !e || t - e >= 1e3 / r - 1;
+class L {
   constructor(e) {
     s(this, "currentProgram", null);
     s(this, "currentVao", null);
@@ -112,14 +113,14 @@ class O {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 }
-const Z = () => {
+const Q = () => {
   if (typeof document > "u") return !1;
   try {
     return !!document.createElement("canvas").getContext("webgl2");
   } catch {
     return !1;
   }
-}, P = (t, e, r) => {
+}, w = (t, e, r) => {
   const n = t.createShader(e);
   if (!n)
     throw new Error("Unable to create WebGL shader.");
@@ -128,8 +129,8 @@ const Z = () => {
     throw t.deleteShader(n), new Error(i);
   }
   return n;
-}, b = (t, e, r, n) => {
-  const i = P(t, t.VERTEX_SHADER, e), a = P(t, t.FRAGMENT_SHADER, r), o = t.createProgram();
+}, y = (t, e, r, n) => {
+  const i = w(t, t.VERTEX_SHADER, e), a = w(t, t.FRAGMENT_SHADER, r), o = t.createProgram();
   if (!o)
     throw new Error("Unable to create WebGL program.");
   if (t.attachShader(o, i), t.attachShader(o, a), n && t.transformFeedbackVaryings(o, n, t.SEPARATE_ATTRIBS), t.linkProgram(o), t.deleteShader(i), t.deleteShader(a), !t.getProgramParameter(o, t.LINK_STATUS)) {
@@ -153,14 +154,14 @@ const Z = () => {
   magFilter: l = t.LINEAR,
   wrap: u = t.CLAMP_TO_EDGE
 }) => {
-  const f = t.createTexture();
-  if (!f)
+  const d = t.createTexture();
+  if (!d)
     throw new Error("Unable to create WebGL texture.");
-  return t.bindTexture(t.TEXTURE_2D, f), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_MIN_FILTER, c), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_MAG_FILTER, l), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_WRAP_S, u), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_WRAP_T, u), e && r ? t.texImage2D(t.TEXTURE_2D, 0, i, e, r, 0, a, o, null) : n && t.texImage2D(t.TEXTURE_2D, 0, i, a, o, n), t.bindTexture(t.TEXTURE_2D, null), f;
+  return t.bindTexture(t.TEXTURE_2D, d), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_MIN_FILTER, c), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_MAG_FILTER, l), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_WRAP_S, u), t.texParameteri(t.TEXTURE_2D, t.TEXTURE_WRAP_T, u), e && r ? t.texImage2D(t.TEXTURE_2D, 0, i, e, r, 0, a, o, null) : n && t.texImage2D(t.TEXTURE_2D, 0, i, a, o, n), t.bindTexture(t.TEXTURE_2D, null), d;
 }, U = (t) => new Promise((e, r) => {
   const n = new Image();
   n.crossOrigin = "anonymous", n.onload = () => e(n), n.onerror = () => r(new Error(`Failed to load image: ${t}`)), n.src = t;
-}), L = ["uResolution", "uImageScale", "uImageOffset", "threshold", "uImage"], V = [
+}), V = ["uResolution", "uImageScale", "uImageOffset", "threshold", "uImage"], X = [
   "deltaTime",
   "resolution",
   "particleSpeed",
@@ -179,8 +180,8 @@ const Z = () => {
   "cursorReturnStrength",
   "cursorReturnDamping",
   "edgeTexture"
-], X = ["uParticleColor", "uParticleOpacity", "particleSize"], y = (t, e, r) => Object.fromEntries(r.map((n) => [n, t.getUniformLocation(e, n)])), k = (t) => "displayWidth" in t && "displayHeight" in t ? { width: t.displayWidth, height: t.displayHeight } : "videoWidth" in t && "videoHeight" in t ? { width: t.videoWidth, height: t.videoHeight } : { width: t.width, height: t.height };
-class G {
+], k = ["uParticleColor", "uParticleOpacity", "particleSize"], R = (t, e, r) => Object.fromEntries(r.map((n) => [n, t.getUniformLocation(e, n)])), G = (t) => "displayWidth" in t && "displayHeight" in t ? { width: t.displayWidth, height: t.displayHeight } : "videoWidth" in t && "videoHeight" in t ? { width: t.videoWidth, height: t.videoHeight } : { width: t.width, height: t.height };
+class Y {
   constructor(e, r, n, i) {
     s(this, "transformFeedback");
     s(this, "edgeFramebuffer");
@@ -202,7 +203,7 @@ class G {
     const a = e.createTransformFeedback(), o = e.createFramebuffer(), c = e.createVertexArray();
     if (!a || !o || !c)
       throw new Error("Unable to initialize WebGL particle resources.");
-    this.transformFeedback = a, this.edgeFramebuffer = o, this.edgeVao = c, this.edgeUniforms = y(e, n.edge, L), this.updateUniforms = y(e, n.update, V), this.particleUniforms = y(e, n.particle, X), this.particleColor = _(i.particleColor), this.edgeTexture = A(e, {
+    this.transformFeedback = a, this.edgeFramebuffer = o, this.edgeVao = c, this.edgeUniforms = R(e, n.edge, V), this.updateUniforms = R(e, n.update, X), this.particleUniforms = R(e, n.particle, k), this.particleColor = D(i.particleColor), this.edgeTexture = A(e, {
       width: e.canvas.width,
       height: e.canvas.height
     }), this.quadBuffer = g(
@@ -210,15 +211,15 @@ class G {
       new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
       e.STATIC_DRAW
     );
-    const l = new Float32Array(i.particleCount * 2), u = new Float32Array(i.particleCount * 2), f = new Float32Array(i.particleCount * 2);
+    const l = new Float32Array(i.particleCount * 2), u = new Float32Array(i.particleCount * 2), d = new Float32Array(i.particleCount * 2);
     for (let p = 0; p < i.particleCount; p += 1) {
       const h = p * 2;
-      l[h] = Math.random(), l[h + 1] = Math.random(), u[h] = (Math.random() - 0.5) * 1e-3, u[h + 1] = (Math.random() - 0.5) * 1e-3, f[h] = -1, f[h + 1] = -1;
+      l[h] = Math.random(), l[h + 1] = Math.random(), u[h] = (Math.random() - 0.5) * 1e-3, u[h + 1] = (Math.random() - 0.5) * 1e-3, d[h] = -1, d[h + 1] = -1;
     }
-    this.positionBuffers = [g(e, l), g(e, l)], this.velocityBuffers = [g(e, u), g(e, u)], this.targetBuffers = [g(e, f), g(e, f)], this.vaos = [this.createParticleVao(0), this.createParticleVao(1)], this.configureEdgeVao(), this.configureEdgeFramebuffer(), this.configureStaticUniforms();
+    this.positionBuffers = [g(e, l), g(e, l)], this.velocityBuffers = [g(e, u), g(e, u)], this.targetBuffers = [g(e, d), g(e, d)], this.vaos = [this.createParticleVao(0), this.createParticleVao(1)], this.configureEdgeVao(), this.configureEdgeFramebuffer(), this.configureStaticUniforms();
   }
   processImage(e) {
-    const r = A(this.gl, { data: e }), n = k(e), i = M({
+    const r = A(this.gl, { data: e }), n = G(e), i = M({
       fit: this.options.imageFit,
       canvasWidth: this.gl.canvas.width,
       canvasHeight: this.gl.canvas.height,
@@ -270,7 +271,7 @@ class G {
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, e), this.gl.enableVertexAttribArray(r), this.gl.vertexAttribPointer(r, 2, this.gl.FLOAT, !1, 0, 0);
   }
 }
-const Y = `#version 300 es
+const H = `#version 300 es
 precision highp float;
 
 in vec2 vTexCoord;
@@ -312,14 +313,14 @@ void main() {
     
     fragColor = vec4(edge, edge, edge, 1.0);
 }
-`, H = `#version 300 es
+`, W = `#version 300 es
 in vec2 aPosition;
 out vec2 vTexCoord;
 
 void main() {
     vTexCoord = vec2(aPosition.x * 0.5 + 0.5, (aPosition.y * 0.5 + 0.5));
     gl_Position = vec4(aPosition, 0.0, 1.0);
-}`, W = `#version 300 es
+}`, q = `#version 300 es
 precision highp float;
 
 in vec2 vPosition;
@@ -332,7 +333,7 @@ void main() {
     float dist = length(gl_PointCoord - vec2(0.5));
     if (dist > 0.5) discard;
     fragColor = vec4(uParticleColor, uParticleOpacity);
-}`, q = `#version 300 es
+}`, K = `#version 300 es
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 velocity;
 layout(location = 2) in vec2 target;
@@ -350,12 +351,12 @@ void main() {
     gl_Position = vec4(position * 2.0 - 1.0, 0, 1);
     gl_PointSize = 2.0 * particleSize;
 }
-`, K = `#version 300 es
+`, j = `#version 300 es
 precision highp float;
 out vec4 fragColor;
 void main() {
     fragColor = vec4(0.0);
-}`, j = `#version 300 es
+}`, $ = `#version 300 es
 
 // Input attributes from vertex buffers
 layout(location = 0) in vec2 position;    // Current particle position (normalized 0-1)
@@ -685,18 +686,18 @@ void main() {
 }
 `, v = {
   edge: {
-    fragment: Y,
-    vertex: H
+    fragment: H,
+    vertex: W
   },
   particle: {
-    fragment: W,
-    vertex: q
+    fragment: q,
+    vertex: K
   },
   update: {
-    fragment: K,
-    vertex: j
+    fragment: j,
+    vertex: $
   }
-}, Q = async (t, e = {}) => {
+}, J = async (t, e = {}) => {
   const r = B(e), n = t.getContext("webgl2", {
     alpha: !1,
     antialias: !1,
@@ -705,62 +706,67 @@ void main() {
   });
   if (!n)
     throw new Error("WebGL2 is required to run Particular Drift.");
-  const i = new O(n), a = {
-    edge: b(n, v.edge.vertex, v.edge.fragment),
-    particle: b(n, v.particle.vertex, v.particle.fragment),
-    update: b(n, v.update.vertex, v.update.fragment, [
+  const i = new L(n), a = {
+    edge: y(n, v.edge.vertex, v.edge.fragment),
+    particle: y(n, v.particle.vertex, v.particle.fragment),
+    update: y(n, v.update.vertex, v.update.fragment, [
       "vPosition",
       "vVelocity",
       "vTarget"
     ])
   };
   let o, c, l = 0, u = !1;
-  const f = { x: 0.5, y: 0.5, active: !1 }, p = () => {
-    const d = t.getBoundingClientRect(), { width: m, height: w } = z({
-      cssWidth: d.width || t.clientWidth || 1,
-      cssHeight: d.height || t.clientHeight || 1,
+  const d = { x: 0.5, y: 0.5, active: !1 }, p = () => {
+    const f = t.getBoundingClientRect(), { width: m, height: P } = z({
+      cssWidth: f.width || t.clientWidth || 1,
+      cssHeight: f.height || t.clientHeight || 1,
       maxDevicePixelRatio: r.maxDevicePixelRatio
     });
-    (t.width !== m || t.height !== w) && (t.width = m, t.height = w), i.setViewport(t.width, t.height);
+    (t.width !== m || t.height !== P) && (t.width = m, t.height = P), i.setViewport(t.width, t.height);
   }, h = () => {
-    i.setClearColor(_(r.backgroundColor)), i.clear();
-  }, R = (d) => {
+    i.setClearColor(D(r.backgroundColor)), i.clear();
+  }, F = (f) => {
     const m = N({
-      clientX: d.clientX,
-      clientY: d.clientY,
+      clientX: f.clientX,
+      clientY: f.clientY,
       rect: t.getBoundingClientRect()
     });
-    f.x = m.x, f.y = m.y, f.active = m.active;
+    d.x = m.x, d.y = m.y, d.active = m.active;
   }, x = () => {
-    f.active = !1;
+    d.active = !1;
   }, S = () => {
     c !== void 0 && (cancelAnimationFrame(c), c = void 0), l = 0;
-  }, T = (d) => {
+  }, E = (f) => {
     if (!o || u) return;
-    const m = l ? d - l : 0;
-    l = d, h(), o.update(m, f), o.render(), c = requestAnimationFrame(T);
-  }, F = () => {
-    c === void 0 && o && !u && (c = requestAnimationFrame(T));
-  }, E = async (d) => {
-    S(), o == null || o.dispose(), p(), h(), o = new G(n, i, a, r), o.processImage(d), r.autoStart && F();
+    if (!O(f, l, r.maxFramesPerSecond)) {
+      c = requestAnimationFrame(E);
+      return;
+    }
+    const m = l ? f - l : 0;
+    l = f, h(), o.update(m, d), o.render(), c = requestAnimationFrame(E);
+  }, T = () => {
+    c === void 0 && o && !u && (c = requestAnimationFrame(E));
+  }, b = async (f) => {
+    S(), o == null || o.dispose(), p(), h(), o = new Y(n, i, a, r), o.processImage(f), r.autoStart && T();
   };
-  return r.imageUrl ? await E(await U(r.imageUrl)) : (p(), h()), r.interactive && (t.addEventListener("pointermove", R, { passive: !0 }), t.addEventListener("pointerleave", x), t.addEventListener("pointercancel", x)), {
-    loadImage: E,
-    loadImageUrl: async (d) => E(await U(d)),
+  return r.imageUrl ? await b(await U(r.imageUrl)) : (p(), h()), r.interactive && (t.addEventListener("pointermove", F, { passive: !0 }), t.addEventListener("pointerleave", x), t.addEventListener("pointercancel", x)), {
+    loadImage: b,
+    loadImageUrl: async (f) => b(await U(f)),
     resize: p,
-    start: F,
+    start: T,
     stop: S,
     destroy: () => {
-      u = !0, S(), t.removeEventListener("pointermove", R), t.removeEventListener("pointerleave", x), t.removeEventListener("pointercancel", x), o == null || o.dispose(), Object.values(a).forEach((d) => n.deleteProgram(d));
+      u = !0, S(), t.removeEventListener("pointermove", F), t.removeEventListener("pointerleave", x), t.removeEventListener("pointercancel", x), o == null || o.dispose(), Object.values(a).forEach((f) => n.deleteProgram(f));
     }
   };
 };
 export {
   C as DEFAULT_PARTICULAR_DRIFT_OPTIONS,
-  Q as createParticularDrift,
+  J as createParticularDrift,
   B as getResolvedOptions,
-  _ as hexToRgbUnit,
-  Z as isWebGL2Supported,
+  D as hexToRgbUnit,
+  O as isFrameDue,
+  Q as isWebGL2Supported,
   z as resolveCanvasSize,
   N as resolveCursorPosition,
   M as resolveImageFit

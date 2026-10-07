@@ -26,6 +26,7 @@ export type ParticularDriftOptions = {
   particleColor: string;
   autoStart: boolean;
   maxDevicePixelRatio: number;
+  maxFramesPerSecond: number;
 };
 
 export type ParticularDriftUserOptions = Partial<ParticularDriftOptions>;
@@ -52,6 +53,7 @@ export const DEFAULT_PARTICULAR_DRIFT_OPTIONS: ParticularDriftOptions = {
   particleColor: '#dda290',
   autoStart: true,
   maxDevicePixelRatio: 2,
+  maxFramesPerSecond: Infinity,
 };
 
 export const getResolvedOptions = (
@@ -95,7 +97,8 @@ export const resolveCanvasSize = ({
   devicePixelRatio = globalThis.devicePixelRatio ?? 1,
   maxDevicePixelRatio = DEFAULT_PARTICULAR_DRIFT_OPTIONS.maxDevicePixelRatio,
 }: ResolveCanvasSizeInput): { width: number; height: number } => {
-  const ratio = Math.max(1, Math.min(devicePixelRatio, maxDevicePixelRatio));
+  // A cap below 1 renders below CSS resolution; the browser scales the canvas up.
+  const ratio = Math.min(Math.max(1, devicePixelRatio), maxDevicePixelRatio);
 
   return {
     width: Math.max(1, Math.floor(cssWidth * ratio)),
@@ -182,3 +185,9 @@ export const resolveImageFit = ({
     offsetY: (1 - scaleY) / 2,
   };
 };
+
+// Whether a frame at `time` is due under a frame-rate cap. The simulation
+// steps by elapsed time, so skipping frames keeps its speed. 1 ms of slack
+// keeps a 30 fps cap from rounding down to every third frame at 60 Hz.
+export const isFrameDue = (time: number, lastFrameTime: number, maxFramesPerSecond: number): boolean =>
+  !lastFrameTime || time - lastFrameTime >= 1000 / maxFramesPerSecond - 1;

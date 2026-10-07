@@ -70,6 +70,10 @@ describe('particular drift config', () => {
     expect(isFrameDue(1016.7, 1000, 30)).toBe(false);
     expect(isFrameDue(1033.3, 1000, 30)).toBe(true);
     expect(isFrameDue(1016.7, 1000, Infinity)).toBe(true);
+    // A cap that is not a positive number must not freeze the animation.
+    expect(isFrameDue(1016.7, 1000, 0)).toBe(true);
+    expect(isFrameDue(1016.7, 1000, Number.NaN)).toBe(true);
+    expect(isFrameDue(1016.7, 1000, undefined as unknown as number)).toBe(true);
   });
 
   it('preserves image aspect ratio when containing an image in a wider canvas', () => {

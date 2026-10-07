@@ -86,7 +86,7 @@ const C = {
     offsetX: 0,
     offsetY: (1 - c) / 2
   };
-}, O = (t, e, r) => !e || t - e >= 1e3 / r - 1;
+}, O = (t, e, r) => !e || !(r > 0) || t - e >= 1e3 / r - 1;
 class L {
   constructor(e) {
     s(this, "currentProgram", null);
@@ -120,7 +120,7 @@ const Q = () => {
   } catch {
     return !1;
   }
-}, w = (t, e, r) => {
+}, P = (t, e, r) => {
   const n = t.createShader(e);
   if (!n)
     throw new Error("Unable to create WebGL shader.");
@@ -130,7 +130,7 @@ const Q = () => {
   }
   return n;
 }, y = (t, e, r, n) => {
-  const i = w(t, t.VERTEX_SHADER, e), a = w(t, t.FRAGMENT_SHADER, r), o = t.createProgram();
+  const i = P(t, t.VERTEX_SHADER, e), a = P(t, t.FRAGMENT_SHADER, r), o = t.createProgram();
   if (!o)
     throw new Error("Unable to create WebGL program.");
   if (t.attachShader(o, i), t.attachShader(o, a), n && t.transformFeedbackVaryings(o, n, t.SEPARATE_ATTRIBS), t.linkProgram(o), t.deleteShader(i), t.deleteShader(a), !t.getProgramParameter(o, t.LINK_STATUS)) {
@@ -717,12 +717,12 @@ void main() {
   };
   let o, c, l = 0, u = !1;
   const d = { x: 0.5, y: 0.5, active: !1 }, p = () => {
-    const f = t.getBoundingClientRect(), { width: m, height: P } = z({
+    const f = t.getBoundingClientRect(), { width: m, height: w } = z({
       cssWidth: f.width || t.clientWidth || 1,
       cssHeight: f.height || t.clientHeight || 1,
       maxDevicePixelRatio: r.maxDevicePixelRatio
     });
-    (t.width !== m || t.height !== P) && (t.width = m, t.height = P), i.setViewport(t.width, t.height);
+    (t.width !== m || t.height !== w) && (t.width = m, t.height = w), i.setViewport(t.width, t.height);
   }, h = () => {
     i.setClearColor(D(r.backgroundColor)), i.clear();
   }, F = (f) => {

@@ -90,8 +90,8 @@ Main options:
 - `backgroundColor`
 - `particleColor`
 - `autoStart`
-- `maxDevicePixelRatio`: caps the canvas resolution; below 1 renders below CSS resolution, which the browser scales up (cheaper on software WebGL).
-- `maxFramesPerSecond`: caps the frame rate (default `Infinity`); the simulation steps by elapsed time, so motion speed is unchanged.
+- `maxDevicePixelRatio`: a positive cap on the canvas resolution; below 1 renders below CSS resolution, which the browser scales up (cheaper on software WebGL). Particle size is in canvas pixels, so lower `particleSize`/`particleOpacity` to keep the same look.
+- `maxFramesPerSecond`: caps the frame rate (default `Infinity`; anything but a positive number means uncapped). The simulation advances by elapsed time, so it does not slow down; lower frame rates are less smooth and settle slightly differently.
 
 ## Development
 

@@ -187,7 +187,8 @@ export const resolveImageFit = ({
 };
 
 // Whether a frame at `time` is due under a frame-rate cap. The simulation
-// steps by elapsed time, so skipping frames keeps its speed. 1 ms of slack
-// keeps a 30 fps cap from rounding down to every third frame at 60 Hz.
+// steps by elapsed time, so skipping frames does not slow it down. 1 ms of
+// slack keeps a 30 fps cap from rounding down to every third frame at 60 Hz.
+// A cap that is not a positive number (0, NaN, undefined) means uncapped.
 export const isFrameDue = (time: number, lastFrameTime: number, maxFramesPerSecond: number): boolean =>
-  !lastFrameTime || time - lastFrameTime >= 1000 / maxFramesPerSecond - 1;
+  !lastFrameTime || !(maxFramesPerSecond > 0) || time - lastFrameTime >= 1000 / maxFramesPerSecond - 1;
